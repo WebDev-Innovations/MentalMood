@@ -60,6 +60,7 @@ The application relies on a robust relational schema managed via **Drift**:
 * Flutter SDK (3.38.2 or higher)
 * Android Studio
 * Android SDK 15.0+
+* A mobile device (For now, it has only been tested on mobile devices.)
 
 
 2. **Installation:**
