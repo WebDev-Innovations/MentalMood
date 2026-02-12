@@ -62,7 +62,7 @@ The application relies on a robust relational schema managed via **Drift**:
 
 2. **Installation:**
 ```bash
-git clone https://github.com/YourUsername/MentalMood.git
+git clone https://github.com/NLEchap0/MentalMood.git
 cd MentalMood
 flutter pub get
 
