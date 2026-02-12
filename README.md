@@ -1,5 +1,7 @@
 # MentalMood 🧠✨
 
+---
+
 **MentalMood** is a cross-platform mobile application designed to help users monitor their emotional well-being in a simple and intuitive way. Developed as part of my semestral project of **Module 306** at CPT Trevano, this project bridges the gap between digital self-reflection and structured data analysis. The application and the documentation is made completely in italian.
 
 <b>
@@ -14,6 +16,8 @@ Author: Bryan Ciaponi (I3AC)
 Module Link (italian): ICT Modulbaukasten - M306
 </a>
 </b>
+
+---
 
 ## 🎯 Project Overview
 
