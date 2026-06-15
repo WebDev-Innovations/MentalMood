@@ -1,6 +1,7 @@
 import 'package:application/Logic/login_controller.dart';
 import 'package:application/Pages/Access/register.dart';
 import 'package:application/Pages/homePage.dart';
+import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -43,71 +44,129 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<LoginController>();
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+                // Logo or Icon
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primarySage.withAlpha((0.1 * 255).round()),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.spa_outlined,
+                    size: 64,
+                    color: AppTheme.primarySage,
+                  ),
                 ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._]')),
-                ],
-                validator: (value) => (value == null || value.isEmpty) ? 'Enter username' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                ),
-                obscureText: true,
-                validator: (value) => (value == null || value.isEmpty) ? 'Enter password' : null,
-              ),
-              if (controller.errorMessage != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 Text(
-                  controller.errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  'Welcome Back',
+                  style: theme.textTheme.displayLarge,
                 ),
-              ],
-              const SizedBox(height: 24),
-              controller.isLoading
-                  ? const CircularProgressIndicator()
-                  : Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _handleLogin,
-                          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                          child: const Text('Login'),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text('or'),
-                        const SizedBox(height: 8),
-                        OutlinedButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const Register()),
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                          child: const Text('Register an Account'),
+                const SizedBox(height: 8),
+                const Text(
+                  'Breathe in, breathe out. Please login to your account.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black54, fontSize: 16),
+                ),
+                const SizedBox(height: 48),
+                TextFormField(
+                  controller: _usernameController,
+                  maxLength: 20,
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                    prefixIcon: Icon(Icons.person_outline),
+                    counterText: "",
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._]')),
+                  ],
+                  validator: (value) => (value == null || value.isEmpty) ? 'Please enter username' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  maxLength: 128,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock_outline),
+                    counterText: "",
+                  ),
+                  obscureText: true,
+                  validator: (value) => (value == null || value.isEmpty) ? 'Please enter password' : null,
+                ),
+                if (controller.errorMessage != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    controller.errorMessage!,
+                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  ),
+                ],
+                const SizedBox(height: 32),
+                // Gradient Login Button
+                GestureDetector(
+                  onTap: controller.isLoading ? null : _handleLogin,
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primarySage.withAlpha((0.4 * 255).round()),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-            ],
+                    child: Center(
+                      child: controller.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'LOGIN',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: const [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text('or', style: TextStyle(color: Colors.black38)),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const Register()),
+                    );
+                  },
+                  child: const Text('REGISTER AN ACCOUNT'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

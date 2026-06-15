@@ -4,6 +4,7 @@ import 'package:application/Logic/register_controller.dart';
 import 'package:application/Pages/Access/login.dart';
 import 'package:application/Repositories/drift_user_repository.dart';
 import 'package:application/Repositories/user_repository.dart';
+import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,9 +26,12 @@ void main() {
           create: (_) => RegisterController(userRepository: userRepository),
         ),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Login(),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system, // Automatically switch based on device settings
+        home: const Login(),
       ),
     ),
   );
