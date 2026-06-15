@@ -19,6 +19,7 @@ class User extends Table{
 @DriftDatabase(tables: [User])
 class AppDataBase extends _$AppDataBase {
   AppDataBase() : super(_openConnection());
+  AppDataBase.forTesting(QueryExecutor e) : super(e);
 
   @override
   int get schemaVersion => 1;
