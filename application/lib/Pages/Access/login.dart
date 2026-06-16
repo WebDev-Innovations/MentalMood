@@ -75,10 +75,10 @@ class _LoginState extends State<Login> {
                       style: theme.textTheme.displayLarge,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Breathe in, breathe out. Please login to your account.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.black54, fontSize: 16),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 16),
                     ),
                     const SizedBox(height: 48),
                     TextFormField(
@@ -114,7 +114,6 @@ class _LoginState extends State<Login> {
                       ),
                     ],
                     const SizedBox(height: 32),
-                    // Login Button with Theme Hover Effects
                     ElevatedButton(
                       onPressed: controller.isLoading ? null : _handleLogin,
                       child: controller.isLoading
@@ -130,13 +129,13 @@ class _LoginState extends State<Login> {
                     ),
                     const SizedBox(height: 24),
                     Row(
-                      children: const [
-                        Expanded(child: Divider()),
+                      children: [
+                        const Expanded(child: Divider()),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('or', style: TextStyle(color: Colors.black38)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('or', style: theme.textTheme.bodySmall),
                         ),
-                        Expanded(child: Divider()),
+                        const Expanded(child: Divider()),
                       ],
                     ),
                     const SizedBox(height: 24),

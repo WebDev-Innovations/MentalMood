@@ -18,11 +18,8 @@ class User extends Table {
 
 class Emotion extends Table {
   IntColumn get id => integer().autoIncrement()();
-  // Value from 1 (malissimo) to 10 (benissimo)
   IntColumn get value => integer().check(value.isBetweenValues(1, 10))();
-  // Reference to the user who recorded the emotion
   IntColumn get userId => integer().references(User, #id)();
-  // Date and time of the recording
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 

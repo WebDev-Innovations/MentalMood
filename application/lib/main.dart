@@ -1,5 +1,6 @@
 import 'package:application/DataBase/database.dart';
 import 'package:application/Logic/login_controller.dart';
+import 'package:application/Logic/mood_controller.dart';
 import 'package:application/Logic/register_controller.dart';
 import 'package:application/Pages/Access/login.dart';
 import 'package:application/Pages/homePage.dart';
@@ -9,11 +10,15 @@ import 'package:application/Repositories/emotion_repository.dart';
 import 'package:application/Repositories/user_repository.dart';
 import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   // Necessary for asynchronous initializations before runApp
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
 
   final db = AppDataBase();
   final userRepository = DriftUserRepository(db);
@@ -32,6 +37,9 @@ void main() async {
         ChangeNotifierProvider<LoginController>.value(value: loginController),
         ChangeNotifierProvider(
           create: (_) => RegisterController(userRepository: userRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MoodController(emotionRepository: emotionRepository),
         ),
       ],
       child: MaterialApp(

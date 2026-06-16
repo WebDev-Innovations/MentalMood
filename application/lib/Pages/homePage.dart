@@ -1,4 +1,5 @@
 import 'package:application/Logic/login_controller.dart';
+import 'package:application/Pages/Mood/add_mood_page.dart';
 import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,13 +23,8 @@ class _HomePageState extends State<HomePage> {
             tooltip: 'Logout',
             onPressed: () async {
               final loginController = Provider.of<LoginController>(context, listen: false);
-              
-              // Clear the session
               await loginController.logout();
-              
               if (!mounted) return;
-              
-              // Return to the login screen and clear the navigation stack
               Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
             },
           )
@@ -48,6 +44,19 @@ class _HomePageState extends State<HomePage> {
             const Text('Welcome to your personal mood tracker.'),
           ],
         ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const AddMoodPage()),
+          );
+        },
+        backgroundColor: AppTheme.primarySage,
+        foregroundColor: Colors.white,
+        shape: const CircleBorder(),
+        elevation: 6,
+        child: const Icon(Icons.add, size: 32),
       ),
     );
   }

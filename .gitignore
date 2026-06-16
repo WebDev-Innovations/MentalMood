@@ -1,0 +1,13 @@
+# Ignore environment variables in any subfolder
+.env
+**/ .env
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore build artifacts
+build/
+.dart_tool/
+.pub/
+.pub-cache/

@@ -87,9 +87,9 @@ class _RegisterState extends State<Register> {
                     style: theme.textTheme.displayLarge?.copyWith(fontSize: 28),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Start tracking your mood and improve your mental well-being.',
-                    style: TextStyle(color: Colors.black54),
+                    style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 32),
                   TextFormField(
@@ -152,7 +152,10 @@ class _RegisterState extends State<Register> {
                     validator: (value) => (value == null || value.length < 6) ? 'Min 6 chars' : null,
                   ),
                   const SizedBox(height: 24),
-                  const Text('Date of Birth', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Date of Birth',
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   Card(
                     margin: EdgeInsets.zero,
@@ -178,7 +181,6 @@ class _RegisterState extends State<Register> {
                     ),
                   ],
                   const SizedBox(height: 40),
-                  // Register Button with Theme Hover Effects
                   ElevatedButton(
                     onPressed: controller.isLoading ? null : _handleRegister,
                     child: controller.isLoading
