@@ -1,5 +1,7 @@
+import 'package:application/Logic/login_controller.dart';
 import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,9 +18,18 @@ class _HomePageState extends State<HomePage> {
         title: const Text('MentalMood'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.of(context).pushReplacementNamed('/'); // Just as a placeholder for logout
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Logout',
+            onPressed: () async {
+              final loginController = Provider.of<LoginController>(context, listen: false);
+              
+              // Clear the session
+              await loginController.logout();
+              
+              if (!mounted) return;
+              
+              // Return to the login screen and clear the navigation stack
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
             },
           )
         ],

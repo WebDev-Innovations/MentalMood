@@ -72,141 +72,130 @@ class _RegisterState extends State<Register> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('New Account')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Join MentalMood',
-                style: theme.textTheme.displayLarge?.copyWith(fontSize: 28),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Start tracking your mood and improve your mental well-being.',
-                style: TextStyle(color: Colors.black54),
-              ),
-              const SizedBox(height: 32),
-              TextFormField(
-                controller: _usernameController,
-                maxLength: 20,
-                decoration: const InputDecoration(
-                  labelText: 'Username *',
-                  prefixIcon: Icon(Icons.alternate_email_outlined),
-                  counterText: "",
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._]')),
-                ],
-                validator: (value) => (value == null || value.length < 3) ? 'Min 3 chars' : null,
-              ),
-              const SizedBox(height: 16),
-              Row(
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+          child: Form(
+            key: _formKey,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _nameController,
-                      maxLength: 50,
-                      decoration: const InputDecoration(
-                        labelText: 'Name *',
-                        counterText: "",
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                      ],
-                      validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+                  Text(
+                    'Join MentalMood',
+                    style: theme.textTheme.displayLarge?.copyWith(fontSize: 28),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Start tracking your mood and improve your mental well-being.',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                  const SizedBox(height: 32),
+                  TextFormField(
+                    controller: _usernameController,
+                    maxLength: 20,
+                    decoration: const InputDecoration(
+                      labelText: 'Username *',
+                      prefixIcon: Icon(Icons.alternate_email_outlined),
+                      counterText: "",
                     ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._]')),
+                    ],
+                    validator: (value) => (value == null || value.length < 3) ? 'Min 3 chars' : null,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _surnameController,
-                      maxLength: 50,
-                      decoration: const InputDecoration(
-                        labelText: 'Surname *',
-                        counterText: "",
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _nameController,
+                          maxLength: 50,
+                          decoration: const InputDecoration(
+                            labelText: 'Name *',
+                            counterText: "",
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                          ],
+                          validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+                        ),
                       ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                      ],
-                      validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                maxLength: 128,
-                decoration: const InputDecoration(
-                  labelText: 'Password *',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  counterText: "",
-                ),
-                obscureText: true,
-                validator: (value) => (value == null || value.length < 6) ? 'Min 6 chars' : null,
-              ),
-              const SizedBox(height: 24),
-              const Text('Date of Birth', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              Card(
-                margin: EdgeInsets.zero,
-                elevation: 0,
-                color: AppTheme.primarySage.withAlpha((0.05 * 255).round()),
-                child: ListTile(
-                  leading: const Icon(Icons.calendar_today_outlined, color: AppTheme.primarySage),
-                  title: Text(
-                    "${_selectedDate.toLocal()}".split(' ')[0],
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  trailing: TextButton(
-                    onPressed: () => _selectDate(context),
-                    child: const Text('CHANGE', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ),
-              if (controller.errorMessage != null) ...[
-                const SizedBox(height: 20),
-                Text(
-                  controller.errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                ),
-              ],
-              const SizedBox(height: 40),
-              GestureDetector(
-                onTap: controller.isLoading ? null : _handleRegister,
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primarySage.withAlpha((0.3 * 255).round()),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _surnameController,
+                          maxLength: 50,
+                          decoration: const InputDecoration(
+                            labelText: 'Surname *',
+                            counterText: "",
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                          ],
+                          validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+                        ),
                       ),
                     ],
                   ),
-                  child: Center(
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
+                    maxLength: 128,
+                    decoration: const InputDecoration(
+                      labelText: 'Password *',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      counterText: "",
+                    ),
+                    obscureText: true,
+                    validator: (value) => (value == null || value.length < 6) ? 'Min 6 chars' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Date of Birth', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    color: AppTheme.primarySage.withAlpha((0.05 * 255).round()),
+                    child: ListTile(
+                      leading: const Icon(Icons.calendar_today_outlined, color: AppTheme.primarySage),
+                      title: Text(
+                        "${_selectedDate.toLocal()}".split(' ')[0],
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      ),
+                      trailing: TextButton(
+                        onPressed: () => _selectDate(context),
+                        child: const Text('CHANGE', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ),
+                  if (controller.errorMessage != null) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      controller.errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                  const SizedBox(height: 40),
+                  // Register Button with Theme Hover Effects
+                  ElevatedButton(
+                    onPressed: controller.isLoading ? null : _handleRegister,
                     child: controller.isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
                         : const Text(
                             'CREATE ACCOUNT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              letterSpacing: 1.2,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
                           ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                ],
               ),
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
         ),
       ),

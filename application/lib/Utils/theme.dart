@@ -58,21 +58,42 @@ class AppTheme {
         iconTheme: IconThemeData(color: primarySage),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          elevation: 4,
-          shadowColor: primarySage.withAlpha((0.4 * 255).round()),
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+        style: ButtonStyle(
+          animationDuration: const Duration(milliseconds: 400),
+          elevation: WidgetStateProperty.resolveWith<double>((states) {
+            if (states.contains(WidgetState.hovered)) return 12;
+            return 4;
+          }),
+          shadowColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.hovered)) return primarySage; 
+            return primarySage.withAlpha((0.4 * 255).round());
+          }),
+          minimumSize: WidgetStateProperty.all(const Size(double.infinity, 56)),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.hovered)) return const Color(0xFF7CB69D);
+            return primarySage;
+          }),
+          foregroundColor: WidgetStateProperty.all(Colors.white),
+          overlayColor: WidgetStateProperty.all(Colors.white10),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 56),
-          side: const BorderSide(color: primarySage, width: 1),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          foregroundColor: primarySage,
+        style: ButtonStyle(
+          animationDuration: const Duration(milliseconds: 400),
+          minimumSize: WidgetStateProperty.all(const Size(double.infinity, 56)),
+          side: WidgetStateProperty.resolveWith<BorderSide>((states) {
+            if (states.contains(WidgetState.hovered)) return const BorderSide(color: primarySage, width: 2);
+            return const BorderSide(color: primarySage, width: 1);
+          }),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
+          foregroundColor: WidgetStateProperty.all(primarySage),
+          backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.hovered)) return primarySage.withAlpha(20);
+            return null;
+          }),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -91,6 +112,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: primarySage, width: 1.5),
         ),
+        hoverColor: primarySage.withAlpha(10),
         labelStyle: const TextStyle(color: Colors.black54),
       ),
       cardTheme: CardThemeData(
@@ -133,13 +155,24 @@ class AppTheme {
         iconTheme: IconThemeData(color: Colors.white),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: primarySage,
-          foregroundColor: Colors.white,
+        style: ButtonStyle(
+          animationDuration: const Duration(milliseconds: 400),
+          elevation: WidgetStateProperty.resolveWith<double>((states) {
+            if (states.contains(WidgetState.hovered)) return 10;
+            return 0;
+          }),
+          shadowColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.hovered)) return primarySage; 
+            return Colors.transparent;
+          }),
+          minimumSize: WidgetStateProperty.all(const Size(double.infinity, 56)),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.hovered)) return const Color(0xFF7CB69D);
+            return primarySage;
+          }),
+          foregroundColor: WidgetStateProperty.all(Colors.white),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -158,6 +191,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: primarySage, width: 1.5),
         ),
+        hoverColor: Colors.white.withAlpha(10),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
