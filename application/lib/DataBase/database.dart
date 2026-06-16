@@ -42,6 +42,9 @@ class AppDataBase extends _$AppDataBase {
   Future<List<EmotionData>> getEmotionsForUser(int userId) =>
       (select(emotion)..where((e) => e.userId.equals(userId))..orderBy([(e) => OrderingTerm.desc(e.createdAt)])).get();
 
+  Future<void> deleteAllEmotionsForUser(int userId) =>
+      (delete(emotion)..where((e) => e.userId.equals(userId))).go();
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
