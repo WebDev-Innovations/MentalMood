@@ -34,10 +34,16 @@ class _HomePageState extends State<HomePage> {
     final user = context.read<LoginController>().currentUser;
     final theme = Theme.of(context);
     final chartData = moodController.getChartData();
+    final todayStatus = moodController.getTodayStatus();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('MentalMood'),
+        leading: IconButton(
+          icon: const Icon(Icons.settings_rounded),
+          tooltip: 'Settings',
+          onPressed: () => Navigator.of(context).pushNamed('/settings'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.auto_awesome_rounded),
@@ -52,38 +58,6 @@ class _HomePageState extends State<HomePage> {
               }
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
-            tooltip: 'Clear All Data',
-            onPressed: () async {
-              if (user != null) {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text("Delete everything?"),
-                    content: const Text("This will remove all your mood history. This action cannot be undone."),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("CANCEL")),
-                      TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("DELETE", style: TextStyle(color: Colors.red))),
-                    ],
-                  ),
-                );
-                if (confirm == true) {
-                  await moodController.clearHistory(user.id);
-                }
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Logout',
-            onPressed: () async {
-              final loginController = Provider.of<LoginController>(context, listen: false);
-              await loginController.logout();
-              if (!mounted) return;
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-            },
-          )
         ],
       ),
       body: SafeArea(
@@ -92,6 +66,54 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                "Today's Overview",
+                style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: (todayStatus['color'] as Color).withAlpha(20),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: (todayStatus['color'] as Color).withAlpha(50)),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      todayStatus['emoji'],
+                      style: const TextStyle(fontSize: 48),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            todayStatus['label'],
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: todayStatus['color'] as Color,
+                              fontSize: 20,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            moodController.getTodayAverage() != null
+                                ? "Daily average: ${moodController.getTodayAverage()!.toStringAsFixed(1)}/10"
+                                : "No mood recorded yet today",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withAlpha(150),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 40),
+              
               Text(
                 "Your Mood Journey",
                 style: theme.textTheme.displayLarge?.copyWith(fontSize: 24),
@@ -130,40 +152,7 @@ class _HomePageState extends State<HomePage> {
                     : _MoodLineChart(data: chartData, range: moodController.selectedRange),
               ),
               
-              const SizedBox(height: 40),
-              
-              if (moodController.moodHistory.isNotEmpty) ...[
-                Text(
-                  "Latest Entry",
-                  style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  child: ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primarySage.withAlpha(30),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.calendar_today_outlined, color: AppTheme.primarySage, size: 20),
-                    ),
-                    title: Text(
-                      DateFormat('EEEE, MMM d').format(moodController.moodHistory.first.createdAt),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(DateFormat('jm').format(moodController.moodHistory.first.createdAt)),
-                    trailing: Text(
-                      "Score: ${moodController.moodHistory.first.value}/10",
-                      style: const TextStyle(
-                        color: AppTheme.primarySage,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              const SizedBox(height: 100),
             ],
           ),
         ),
@@ -195,31 +184,39 @@ class _RangeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white10 : Colors.black.withAlpha(15),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _RangeButton(
-            label: "24h",
-            isSelected: selectedRange == MoodRange.last24h,
-            onTap: () => onChanged(MoodRange.last24h),
-          ),
-          _RangeButton(
-            label: "7d",
-            isSelected: selectedRange == MoodRange.last7d,
-            onTap: () => onChanged(MoodRange.last7d),
-          ),
-          _RangeButton(
-            label: "30d",
-            isSelected: selectedRange == MoodRange.last30d,
-            onTap: () => onChanged(MoodRange.last30d),
-          ),
-        ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white10 : Colors.black.withAlpha(15),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _RangeButton(
+              label: "24h",
+              isSelected: selectedRange == MoodRange.last24h,
+              onTap: () => onChanged(MoodRange.last24h),
+            ),
+            _RangeButton(
+              label: "7d",
+              isSelected: selectedRange == MoodRange.last7d,
+              onTap: () => onChanged(MoodRange.last7d),
+            ),
+            _RangeButton(
+              label: "30d",
+              isSelected: selectedRange == MoodRange.last30d,
+              onTap: () => onChanged(MoodRange.last30d),
+            ),
+            _RangeButton(
+              label: "Year",
+              isSelected: selectedRange == MoodRange.lastYear,
+              onTap: () => onChanged(MoodRange.lastYear),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -270,11 +267,9 @@ class _MoodLineChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     
-    // Find the range of the data to calculate the relative stop for the line gradient
     final double minYData = data.map((e) => e.value).reduce(min);
     final double maxYData = data.map((e) => e.value).reduce(max);
     
-    // Line Gradient Stop (maps 5.0 in the data range)
     double lineStop = 0.5;
     if (maxYData != minYData) {
       lineStop = (5.0 - minYData) / (maxYData - minYData);
@@ -283,8 +278,6 @@ class _MoodLineChart extends StatelessWidget {
     }
     lineStop = lineStop.clamp(0.0, 1.0);
 
-    // Background Gradient Stop (maps 5.0 in the chart axis range 0-10)
-    // Since minY of the chart is fixed at 0.0 and background fills from 0 to maxYData
     double bgStop = 1.0;
     if (maxYData > 0) {
       bgStop = 5.0 / maxYData;
@@ -307,7 +300,7 @@ class _MoodLineChart extends StatelessWidget {
                 alignment: Alignment.topRight,
                 padding: const EdgeInsets.only(right: 10, bottom: 5),
                 style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold),
-                labelResolver: (_) => 'THRESHOLD',
+                labelResolver: (_) => 'STABILITY',
               ),
             ),
           ],
@@ -331,9 +324,14 @@ class _MoodLineChart extends StatelessWidget {
                 if (index < 0 || index >= data.length) return const SizedBox.shrink();
                 
                 final date = data[index].date;
-                String text = range == MoodRange.last24h 
-                    ? DateFormat('HH:mm').format(date) 
-                    : DateFormat('dd/MM').format(date);
+                String text = '';
+                if (range == MoodRange.last24h) {
+                  text = DateFormat.Hm().format(date);
+                } else if (range == MoodRange.lastYear) {
+                  text = DateFormat.MMM().format(date);
+                } else {
+                  text = DateFormat.Md().format(date);
+                }
 
                 return Padding(
                   padding: const EdgeInsets.only(top: 8.0),
@@ -345,12 +343,24 @@ class _MoodLineChart extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
+              reservedSize: 70,
               interval: 2,
               getTitlesWidget: (value, meta) {
+                String label = '';
+                if (value == 0) label = 'VERY BAD';
+                else if (value == 2) label = 'BAD';
+                else if (value == 4) label = 'MEH';
+                else if (value == 6) label = 'GOOD';
+                else if (value == 8) label = 'GREAT';
+                else if (value == 10) label = 'EXCELLENT';
+
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Text(value.toInt().toString(), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold),
+                  ),
                 );
               },
             ),
@@ -366,14 +376,14 @@ class _MoodLineChart extends StatelessWidget {
             curveSmoothness: 0.35,
             gradient: LinearGradient(
               colors: const [Colors.redAccent, AppTheme.primarySage],
-              stops: [max(0.0, lineStop - 0.1), min(1.0, lineStop + 0.1)], // Smooth transition
+              stops: [max(0.0, lineStop - 0.1), min(1.0, lineStop + 0.1)],
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
             ),
             barWidth: 4,
             isStrokeCapRound: true,
             dotData: FlDotData(
-              show: data.length < 15,
+              show: data.length < 20,
               getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
                 radius: 4,
                 color: Colors.white,
@@ -388,7 +398,7 @@ class _MoodLineChart extends StatelessWidget {
                   Colors.redAccent.withAlpha(brightness == Brightness.light ? 40 : 20),
                   AppTheme.primarySage.withAlpha(brightness == Brightness.light ? 60 : 30),
                 ],
-                stops: [max(0.0, bgStop - 0.05), min(1.0, bgStop + 0.05)], // Aligned with threshold
+                stops: [max(0.0, bgStop - 0.05), min(1.0, bgStop + 0.05)],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
@@ -400,8 +410,11 @@ class _MoodLineChart extends StatelessWidget {
             getTooltipColor: (touchedSpot) => touchedSpot.y < 5.0 ? Colors.redAccent : AppTheme.primarySage,
             getTooltipItems: (touchedSpots) => touchedSpots.map((spot) {
               final point = data[spot.x.toInt()];
+              String dateStr = range == MoodRange.lastYear 
+                  ? DateFormat.yMMMM().format(point.date)
+                  : DateFormat.yMd().add_Hm().format(point.date);
               return LineTooltipItem(
-                '${point.value.toStringAsFixed(1)}\n${DateFormat('MMM d, HH:mm').format(point.date)}',
+                '${point.value.toStringAsFixed(1)}\n$dateStr',
                 const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
               );
             }).toList(),

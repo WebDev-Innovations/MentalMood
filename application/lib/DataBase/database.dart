@@ -19,7 +19,7 @@ class User extends Table {
 class Emotion extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get value => integer().check(value.isBetweenValues(1, 10))();
-  IntColumn get userId => integer().references(User, #id)();
+  IntColumn get userId => integer().references(User, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
@@ -36,6 +36,9 @@ class AppDataBase extends _$AppDataBase {
   Future<UserData?> getUser(String username) =>
       (select(user)..where((u) => u.username.equals(username))).getSingleOrNull();
 
+  Future<bool> updateUser(UserCompanion entity) => update(user).replace(entity);
+  Future<int> deleteUser(int userId) => (delete(user)..where((u) => u.id.equals(userId))).go();
+
   // Emotion operations
   Future<int> addEmotion(EmotionCompanion entity) => into(emotion).insert(entity);
   
@@ -44,6 +47,9 @@ class AppDataBase extends _$AppDataBase {
 
   Future<void> deleteAllEmotionsForUser(int userId) =>
       (delete(emotion)..where((e) => e.userId.equals(userId))).go();
+
+  Future<void> deleteEmotionsBefore(int userId, DateTime date) =>
+      (delete(emotion)..where((e) => e.userId.equals(userId) & e.createdAt.isSmallerThanValue(date))).go();
 
   @override
   MigrationStrategy get migration {

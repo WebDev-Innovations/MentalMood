@@ -437,7 +437,7 @@ class $EmotionTable extends Emotion with TableInfo<$EmotionTable, EmotionData> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES user (id)',
+      'REFERENCES user (id) ON DELETE CASCADE',
     ),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
@@ -707,6 +707,16 @@ abstract class _$AppDataBase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [user, emotion];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('emotion', kind: UpdateKind.delete)],
+    ),
+  ]);
 }
 
 typedef $$UserTableCreateCompanionBuilder =

@@ -1,6 +1,7 @@
 import 'package:application/DataBase/database.dart';
 import 'package:application/Repositories/user_repository.dart';
 import 'package:bcrypt/bcrypt.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,5 +68,42 @@ class LoginController extends ChangeNotifier {
     await prefs.remove(_sessionKey);
     _currentUser = null;
     notifyListeners();
+  }
+
+  /// Updates current user profile info
+  Future<bool> updateProfile({
+    required String name,
+    required String surname,
+    required DateTime birthDate,
+  }) async {
+    if (_currentUser == null) return false;
+
+    final updatedUser = _currentUser!.toCompanion(true).copyWith(
+          name: Value(name.trim()),
+          surname: Value(surname.trim()),
+          birthDate: Value(birthDate),
+        );
+
+    final success = await userRepository.updateUser(updatedUser);
+    if (success) {
+      _currentUser = await userRepository.getUserByUsername(_currentUser!.username);
+      notifyListeners();
+    }
+    return success;
+  }
+
+  /// Deletes the current user account and all associated data
+  Future<bool> deleteAccount() async {
+    if (_currentUser == null) return false;
+
+    // The user deletion will happen here.
+    // Note: Associating mood deletion here or relying on DB constraints.
+    final deletedCount = await userRepository.deleteUser(_currentUser!.id);
+    
+    if (deletedCount > 0) {
+      await logout();
+      return true;
+    }
+    return false;
   }
 }

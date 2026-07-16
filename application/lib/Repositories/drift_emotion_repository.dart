@@ -20,4 +20,9 @@ class DriftEmotionRepository implements EmotionRepository {
   Future<void> deleteAllEmotionsForUser(int userId) {
     return _db.deleteAllEmotionsForUser(userId);
   }
+
+  @override
+  Future<void> deleteEmotionsBefore(int userId, DateTime date) {
+    return _db.deleteEmotionsBefore(userId, date);
+  }
 }

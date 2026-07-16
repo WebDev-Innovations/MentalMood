@@ -5,7 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-enum MoodRange { last24h, last7d, last30d }
+enum MoodRange { last24h, last7d, last30d, lastYear }
 
 class MoodController extends ChangeNotifier {
   final EmotionRepository emotionRepository;
@@ -71,13 +71,6 @@ class MoodController extends ChangeNotifier {
     }
   }
 
-  /// Deletes all history for the user
-  Future<void> clearHistory(int userId) async {
-    await emotionRepository.deleteAllEmotionsForUser(userId);
-    _moodHistory = [];
-    notifyListeners();
-  }
-
   /// Seeds the database with random mood data for the last 60 days
   Future<void> seedMockData(int userId) async {
     final Random random = Random();
@@ -102,6 +95,19 @@ class MoodController extends ChangeNotifier {
     await fetchMoodHistory(userId);
   }
 
+  /// Deletes all history for the user
+  Future<void> clearHistory(int userId) async {
+    await emotionRepository.deleteAllEmotionsForUser(userId);
+    _moodHistory = [];
+    notifyListeners();
+  }
+
+  /// Deletes history before a specific date
+  Future<void> clearHistoryBefore(int userId, DateTime date) async {
+    await emotionRepository.deleteEmotionsBefore(userId, date);
+    await fetchMoodHistory(userId);
+  }
+
   /// Returns processed data for the chart based on the selected range
   List<ChartMoodPoint> getChartData() {
     if (_moodHistory.isEmpty) return [];
@@ -109,6 +115,7 @@ class MoodController extends ChangeNotifier {
     final now = DateTime.now();
     DateTime cutoff;
     bool groupByDay = false;
+    bool groupByMonth = false;
 
     switch (_selectedRange) {
       case MoodRange.last24h:
@@ -123,30 +130,54 @@ class MoodController extends ChangeNotifier {
         cutoff = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 29));
         groupByDay = true;
         break;
+      case MoodRange.lastYear:
+        cutoff = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 364));
+        groupByMonth = true;
+        break;
     }
 
     final filtered = _moodHistory.where((e) => e.createdAt.isAfter(cutoff)).toList();
     // Sort oldest to newest for the chart
     filtered.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-    if (!groupByDay) {
+    if (_selectedRange == MoodRange.last24h) {
       return filtered.map((e) => ChartMoodPoint(date: e.createdAt, value: e.value.toDouble())).toList();
     }
 
-    // Group by day and average
-    final Map<String, List<double>> groups = {};
-    for (var e in filtered) {
-      final dayKey = DateFormat('yyyy-MM-dd').format(e.createdAt);
-      groups.putIfAbsent(dayKey, () => []).add(e.value.toDouble());
+    if (groupByMonth) {
+      // Group by month and average
+      final Map<String, List<double>> groups = {};
+      for (var e in filtered) {
+        final monthKey = DateFormat('yyyy-MM').format(e.createdAt);
+        groups.putIfAbsent(monthKey, () => []).add(e.value.toDouble());
+      }
+
+      final List<ChartMoodPoint> result = [];
+      groups.forEach((month, values) {
+        final avg = values.reduce((a, b) => a + b) / values.length;
+        result.add(ChartMoodPoint(date: DateTime.parse("$month-01"), value: avg));
+      });
+      return result;
     }
 
-    final List<ChartMoodPoint> result = [];
-    groups.forEach((day, values) {
-      final avg = values.reduce((a, b) => a + b) / values.length;
-      result.add(ChartMoodPoint(date: DateTime.parse(day), value: avg));
-    });
+    if (groupByDay) {
+      // Group by day and average
+      final Map<String, List<double>> groups = {};
+      for (var e in filtered) {
+        final dayKey = DateFormat('yyyy-MM-dd').format(e.createdAt);
+        groups.putIfAbsent(dayKey, () => []).add(e.value.toDouble());
+      }
 
-    return result;
+      final List<ChartMoodPoint> result = [];
+      groups.forEach((day, values) {
+        final avg = values.reduce((a, b) => a + b) / values.length;
+        result.add(ChartMoodPoint(date: DateTime.parse(day), value: avg));
+      });
+
+      return result;
+    }
+
+    return [];
   }
 
   String getMoodSummary() {
@@ -157,6 +188,28 @@ class MoodController extends ChangeNotifier {
     if (latestMood <= 6) return "You're doing okay. Keep finding moments of peace.";
     if (latestMood <= 8) return "You're feeling good! Keep up the positive energy.";
     return "You're feeling amazing! Enjoy this beautiful moment.";
+  }
+
+  double? getTodayAverage() {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEntries = _moodHistory.where((e) => e.createdAt.isAfter(todayStart)).toList();
+    
+    if (todayEntries.isEmpty) return null;
+    
+    final sum = todayEntries.map((e) => e.value).reduce((a, b) => a + b);
+    return sum / todayEntries.length;
+  }
+
+  Map<String, dynamic> getTodayStatus() {
+    final avg = getTodayAverage();
+    if (avg == null) return {"label": "No entries yet", "emoji": "🌱", "color": Colors.grey};
+    
+    if (avg <= 2.5) return {"label": "Tough Day", "emoji": "😫", "color": Colors.redAccent};
+    if (avg <= 4.5) return {"label": "Bit Rough", "emoji": "🙁", "color": Colors.orangeAccent};
+    if (avg <= 6.5) return {"label": "Steady", "emoji": "😐", "color": Colors.blueAccent};
+    if (avg <= 8.5) return {"label": "Good Day", "emoji": "🙂", "color": const Color(0xFF6DA48D)};
+    return {"label": "Fantastic!", "emoji": "🤩", "color": Colors.orange};
   }
 }
 

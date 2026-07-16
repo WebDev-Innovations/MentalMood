@@ -2,6 +2,7 @@ import 'package:application/Logic/register_controller.dart';
 import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class Register extends StatefulWidget {
@@ -163,10 +164,7 @@ class _RegisterState extends State<Register> {
                     color: AppTheme.primarySage.withAlpha((0.05 * 255).round()),
                     child: ListTile(
                       leading: const Icon(Icons.calendar_today_outlined, color: AppTheme.primarySage),
-                      title: Text(
-                        "${_selectedDate.toLocal()}".split(' ')[0],
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
+                      title: Text(DateFormat.yMd().format(_selectedDate)),
                       trailing: TextButton(
                         onPressed: () => _selectDate(context),
                         child: const Text('CHANGE', style: TextStyle(fontWeight: FontWeight.bold)),
