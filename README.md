@@ -1,95 +1,146 @@
-# MentalMood 🧠🍃
+# MentalMood
 
-**MentalMood** is a modern, cross-platform application designed to help users monitor their emotional well-being through an intuitive and relaxing interface. Developed as a semestral project for **Module 306** at CPT Trevano, it combines digital self-reflection with advanced data visualization and local privacy.
+**Enterprise-grade emotional well-being tracking.**
 
-<b>Author: Bryan Ciaponi (I3AC)</b>
-
-<br>
-
-<b>
-<a href="https://www.modulbaukasten.ch/module/306/4/it-IT?degree=03a95323-bf92-eb11-b1ac-000d3a831ef4&title=Realizzare-progetti-semplici-nel-proprio-ambito-professionale">
-Module Link (Italian): ICT Modulbaukasten - M306
-</a>
-</b>
+MentalMood is a cross-platform application designed for individuals and organizations that prioritize mental health. It provides structured mood logging, advanced analytics, and complete data privacy -- all without relying on external servers.
 
 ---
 
-## 🎯 Project Vision
+## Overview
 
-MentalMood transforms fragmented emotional tracking into a structured, secure, and beautiful journey. The app focuses on a "Privacy-First" approach, keeping all sensitive data locally on your device while providing professional-grade insights into your mood trends.
+MentalMood addresses a growing need in corporate wellness programs and personal health management: reliable, private, and actionable emotional tracking. Users log their mood on a 1-10 scale, and the app transforms raw entries into meaningful insights through interactive charts and daily summaries.
 
-### ✨ Key Features
-
-*   **Secure Authentication**: Personal accounts with persistent login and **BCrypt** password hashing for maximum security.
-*   **Interactive Mood Logging**: A unique, responsive emoji-based selection system. Watch emojis come to life as you slide through mood levels (1-10).
-*   **Dynamic Analytics**: Beautiful, high-performance line charts using `fl_chart`. Visualize your journey across different timeframes:
-    *   **24h**: Detailed view of every entry.
-    *   **7d / 30d**: Daily averages to spot weekly and monthly trends.
-    *   **Year**: Monthly averages for long-term emotional tracking.
-*   **Smart Overview**: A dynamic daily summary that greets you with an analysis of your current day's progress.
-*   **Aesthetic Excellence**: A custom-designed **Sage Green theme** (Light & Dark modes) featuring the Quicksand font and ultra-smooth **Ease In-Out animations** for a stress-free experience.
-*   **Data Sovereignty**: Full control over your data. Update your profile, clear specific history ranges, or delete your entire account and data with one click.
-*   **AI-Ready**: Architecture pre-configured for integration with **NVIDIA's Mistral Large AI** for future personalized well-being insights.
+Every piece of data stays on the user's device. No cloud sync, no third-party servers, no data leaks.
 
 ---
 
-## 🛠️ Tech Stack
+## Features
 
-*   **UI Framework**: [Flutter](https://flutter.dev/) (Material 3)
-*   **Database**: [Drift](https://drift.simonbinder.eu/) (SQLite) with reactive persistence and automated migrations.
-*   **State Management**: [Provider](https://pub.dev/packages/provider) for clean logic-UI separation.
-*   **Architecture**: **Repository Pattern** for a modular and maintainable backend-frontend split.
-*   **Security**: [BCrypt](https://pub.dev/packages/bcrypt) for secure credential storage.
-*   **Graphics**: [fl_chart](https://pub.dev/packages/fl_chart) for advanced data visualization.
-*   **Internationalization**: Fully localized date and time formatting based on device settings.
+### Mood Tracking
+A responsive emoji-based interface where visuals animate in real time as the user selects their mood level. Each entry is timestamped, stored locally, and linked to the user's account.
+
+### Advanced Analytics
+Interactive line charts powered by `fl_chart` visualize emotional trends across four configurable timeframes:
+- **24 hours** -- Granular view of every individual entry
+- **7 days / 30 days** -- Daily averages to identify weekly and monthly patterns
+- **12 months** -- Monthly averages for long-term trajectory analysis
+
+### Intelligent Daily Summary
+A dynamic overview card that calculates the day's average mood, displays a contextual status label, and provides immediate visual feedback on the user's current state.
+
+### Security-First Authentication
+User accounts with persistent sessions and BCrypt password hashing (12 salt rounds). Credentials are never stored in plaintext. Session management via encrypted local storage.
+
+### Complete Data Sovereignty
+Users maintain full control over their data at all times:
+- Update personal profile information
+- Clear history for specific date ranges
+- Permanently delete account and all associated data
+
+No recovery mechanism exists by design -- once deleted, data is irrecoverable.
+
+### AI Integration (Ready)
+Pre-configured connection to NVIDIA's Mistral Large language model for future deployment of personalized well-being insights and trend analysis. Requires API key configuration via environment variables.
+
+### Adaptive Theming
+Custom Sage Green design system built on Material 3 with the Quicksand typeface. Automatic light/dark mode switching based on system preference.
 
 ---
 
-## 🏗️ Folder Structure
+## Technology
 
-```text
+| Component | Solution |
+|-----------|----------|
+| Framework | [Flutter](https://flutter.dev/) (Material 3) |
+| Database | [Drift](https://drift.simonbinder.eu/) (SQLite) with reactive queries and automatic schema migrations |
+| State Management | [Provider](https://pub.dev/packages/provider) |
+| Architecture | Repository Pattern with clean layer separation |
+| Authentication | [BCrypt](https://pub.dev/packages/bcrypt) password hashing |
+| Visualization | [fl_chart](https://pub.dev/packages/fl_chart) |
+| AI Backend | [flutter_dotenv](https://pub.dev/packages/flutter_dotenv) + NVIDIA API |
+| Localization | Device-locale date/time formatting via [intl](https://pub.dev/packages/intl) |
+
+---
+
+## Architecture
+
+```
 lib/
-├── DataBase/      # Drift schema and database definitions
-├── Logic/         # Business logic (Controllers and AI Services)
-├── Repositories/  # Data access abstraction layer
-├── Pages/         # UI Screens (Access, Mood selection, Settings)
-├── Utils/         # Design System, Themes, and Constants
-└── main.dart      # App entry point and Provider configuration
+├── DataBase/          Drift schema definitions, tables, and migration logic
+├── Logic/             Business controllers (login, register, mood) and AI service
+├── Repositories/      Abstracted data access layer with Drift implementations
+├── Pages/             UI screens organized by feature (Access, Mood, Settings)
+├── Utils/             Design system, theme definitions, and constants
+└── main.dart          Application entry point and dependency injection
+```
+
+The architecture enforces strict separation of concerns:
+- **Pages** render UI and delegate all logic to controllers
+- **Controllers** manage application state and coordinate business rules
+- **Repositories** isolate data access, making the persistence layer swappable
+- **Database** handles schema versioning and migration strategies automatically
+
+This design allows independent testing, modification, or replacement of each layer without affecting the others.
+
+---
+
+## Installation
+
+### Requirements
+- Flutter SDK >= 3.44.0
+- Dart SDK >= 3.12.1
+- Target platform: Android, iOS, macOS, Linux, Windows, or Web
+
+### Setup
+
+```bash
+git clone https://github.com/NLEchap0/MentalMood.git
+cd MentalMood/application
+```
+
+### Environment Variables
+
+Create a `.env` file in the `application/` directory (excluded from version control):
+
+```env
+NVIDIA_API_KEY=your_api_key
+NVIDIA_API_URL=https://integrate.api.nvidia.com/v1/chat/completions
+NVIDIA_MODEL=mistralai/mistral-large-3-675b-instruct-2512
+```
+
+### Dependencies
+
+```bash
+flutter pub get
+```
+
+### Code Generation
+
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+### Launch
+
+```bash
+flutter run
 ```
 
 ---
 
-## 🚀 Getting Started
+## Use Cases
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/NLEchap0/MentalMood.git
-    cd MentalMood/application
-    ```
-
-2.  **Environment Setup**:
-    Create a `.env` file in the `application/` folder (it is ignored by git for security):
-    ```env
-    NVIDIA_API_KEY=your_key_here
-    NVIDIA_API_URL=https://integrate.api.nvidia.com/v1/chat/completions
-    NVIDIA_MODEL=mistralai/mistral-large-3-675b-instruct-2512
-    ```
-
-3.  **Install dependencies**:
-    ```bash
-    flutter pub get
-    ```
-
-4.  **Generate Database code**:
-    ```bash
-    flutter pub run build_runner build --delete-conflicting-outputs
-    ```
-
-5.  **Run the application**:
-    ```bash
-    flutter run
-    ```
+- **Corporate Wellness Programs** -- Deploy across teams to monitor employee well-being trends without compromising individual privacy
+- **Healthcare Support** -- Complement therapy sessions with structured self-reported mood data
+- **Personal Development** -- Track emotional patterns to identify triggers and improve self-awareness
+- **Research** -- Collect anonymized local datasets for mental health studies
 
 ---
 
-*MentalMood - Breathe in, breathe out.*
+## License
+
+Proprietary. All rights reserved. For licensing inquiries, contact the author.
+
+---
+
+*MentalMood -- Breathe in, breathe out.*
