@@ -12,6 +12,11 @@ class DriftEmotionRepository implements EmotionRepository {
   }
 
   @override
+  Future<bool> updateEmotion(EmotionCompanion emotion) {
+    return _db.updateEmotion(emotion);
+  }
+
+  @override
   Future<List<EmotionData>> getEmotionsForUser(int userId) {
     return _db.getEmotionsForUser(userId);
   }
@@ -24,5 +29,25 @@ class DriftEmotionRepository implements EmotionRepository {
   @override
   Future<void> deleteEmotionsBefore(int userId, DateTime date) {
     return _db.deleteEmotionsBefore(userId, date);
+  }
+
+  @override
+  Future<void> deleteEmotion(int id) {
+    return _db.deleteEmotion(id);
+  }
+
+  @override
+  Future<int> addTag(MoodTagCompanion tag) {
+    return _db.addTag(tag);
+  }
+
+  @override
+  Future<List<MoodTagData>> getTagsForUser(int userId) {
+    return _db.getTagsForUser(userId);
+  }
+
+  @override
+  Future<int> deleteTag(int id) {
+    return _db.deleteTag(id);
   }
 }

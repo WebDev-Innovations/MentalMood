@@ -96,23 +96,28 @@ class _HomePageState extends State<HomePage> {
                               fontSize: 20,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            moodController.getTodayAverage() != null
-                                ? "Daily average: ${moodController.getTodayAverage()!.toStringAsFixed(1)}/10"
-                                : "No mood recorded yet today",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withAlpha(150),
-                            ),
-                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(context).pushNamed('/history'),
+                  icon: const Icon(Icons.history_rounded, size: 20),
+                  label: const Text("View Mood History"),
+                  style: TextButton.styleFrom(
+                    foregroundColor: theme.colorScheme.onSurface.withAlpha(180),
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                ),
+              ),
               
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
               
               Text(
                 "Your Mood Journey",

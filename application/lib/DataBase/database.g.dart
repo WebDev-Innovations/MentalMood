@@ -452,8 +452,33 @@ class $EmotionTable extends Emotion with TableInfo<$EmotionTable, EmotionData> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
-  List<GeneratedColumn> get $columns => [id, value, userId, createdAt];
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+    'tags',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    value,
+    userId,
+    createdAt,
+    note,
+    tags,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -491,6 +516,18 @@ class $EmotionTable extends Emotion with TableInfo<$EmotionTable, EmotionData> {
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('tags')) {
+      context.handle(
+        _tagsMeta,
+        tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta),
+      );
+    }
     return context;
   }
 
@@ -516,6 +553,14 @@ class $EmotionTable extends Emotion with TableInfo<$EmotionTable, EmotionData> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      tags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags'],
+      ),
     );
   }
 
@@ -530,11 +575,15 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
   final int value;
   final int userId;
   final DateTime createdAt;
+  final String? note;
+  final String? tags;
   const EmotionData({
     required this.id,
     required this.value,
     required this.userId,
     required this.createdAt,
+    this.note,
+    this.tags,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -543,6 +592,12 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
     map['value'] = Variable<int>(value);
     map['user_id'] = Variable<int>(userId);
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || tags != null) {
+      map['tags'] = Variable<String>(tags);
+    }
     return map;
   }
 
@@ -552,6 +607,8 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
       value: Value(value),
       userId: Value(userId),
       createdAt: Value(createdAt),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      tags: tags == null && nullToAbsent ? const Value.absent() : Value(tags),
     );
   }
 
@@ -565,6 +622,8 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
       value: serializer.fromJson<int>(json['value']),
       userId: serializer.fromJson<int>(json['userId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      note: serializer.fromJson<String?>(json['note']),
+      tags: serializer.fromJson<String?>(json['tags']),
     );
   }
   @override
@@ -575,6 +634,8 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
       'value': serializer.toJson<int>(value),
       'userId': serializer.toJson<int>(userId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'note': serializer.toJson<String?>(note),
+      'tags': serializer.toJson<String?>(tags),
     };
   }
 
@@ -583,11 +644,15 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
     int? value,
     int? userId,
     DateTime? createdAt,
+    Value<String?> note = const Value.absent(),
+    Value<String?> tags = const Value.absent(),
   }) => EmotionData(
     id: id ?? this.id,
     value: value ?? this.value,
     userId: userId ?? this.userId,
     createdAt: createdAt ?? this.createdAt,
+    note: note.present ? note.value : this.note,
+    tags: tags.present ? tags.value : this.tags,
   );
   EmotionData copyWithCompanion(EmotionCompanion data) {
     return EmotionData(
@@ -595,6 +660,8 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
       value: data.value.present ? data.value.value : this.value,
       userId: data.userId.present ? data.userId.value : this.userId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      note: data.note.present ? data.note.value : this.note,
+      tags: data.tags.present ? data.tags.value : this.tags,
     );
   }
 
@@ -604,13 +671,15 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
           ..write('id: $id, ')
           ..write('value: $value, ')
           ..write('userId: $userId, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('note: $note, ')
+          ..write('tags: $tags')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, value, userId, createdAt);
+  int get hashCode => Object.hash(id, value, userId, createdAt, note, tags);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -618,7 +687,9 @@ class EmotionData extends DataClass implements Insertable<EmotionData> {
           other.id == this.id &&
           other.value == this.value &&
           other.userId == this.userId &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.note == this.note &&
+          other.tags == this.tags);
 }
 
 class EmotionCompanion extends UpdateCompanion<EmotionData> {
@@ -626,17 +697,23 @@ class EmotionCompanion extends UpdateCompanion<EmotionData> {
   final Value<int> value;
   final Value<int> userId;
   final Value<DateTime> createdAt;
+  final Value<String?> note;
+  final Value<String?> tags;
   const EmotionCompanion({
     this.id = const Value.absent(),
     this.value = const Value.absent(),
     this.userId = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.tags = const Value.absent(),
   });
   EmotionCompanion.insert({
     this.id = const Value.absent(),
     required int value,
     required int userId,
     this.createdAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.tags = const Value.absent(),
   }) : value = Value(value),
        userId = Value(userId);
   static Insertable<EmotionData> custom({
@@ -644,12 +721,16 @@ class EmotionCompanion extends UpdateCompanion<EmotionData> {
     Expression<int>? value,
     Expression<int>? userId,
     Expression<DateTime>? createdAt,
+    Expression<String>? note,
+    Expression<String>? tags,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (value != null) 'value': value,
       if (userId != null) 'user_id': userId,
       if (createdAt != null) 'created_at': createdAt,
+      if (note != null) 'note': note,
+      if (tags != null) 'tags': tags,
     });
   }
 
@@ -658,12 +739,16 @@ class EmotionCompanion extends UpdateCompanion<EmotionData> {
     Value<int>? value,
     Value<int>? userId,
     Value<DateTime>? createdAt,
+    Value<String?>? note,
+    Value<String?>? tags,
   }) {
     return EmotionCompanion(
       id: id ?? this.id,
       value: value ?? this.value,
       userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
+      note: note ?? this.note,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -682,6 +767,12 @@ class EmotionCompanion extends UpdateCompanion<EmotionData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
+    }
     return map;
   }
 
@@ -691,7 +782,314 @@ class EmotionCompanion extends UpdateCompanion<EmotionData> {
           ..write('id: $id, ')
           ..write('value: $value, ')
           ..write('userId: $userId, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('note: $note, ')
+          ..write('tags: $tags')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MoodTagTable extends MoodTag with TableInfo<$MoodTagTable, MoodTagData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MoodTagTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 20,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _emojiMeta = const VerificationMeta('emoji');
+  @override
+  late final GeneratedColumn<String> emoji = GeneratedColumn<String>(
+    'emoji',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 5,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES user (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, label, emoji, userId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'mood_tag';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MoodTagData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('emoji')) {
+      context.handle(
+        _emojiMeta,
+        emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_emojiMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MoodTagData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MoodTagData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      emoji: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emoji'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      ),
+    );
+  }
+
+  @override
+  $MoodTagTable createAlias(String alias) {
+    return $MoodTagTable(attachedDatabase, alias);
+  }
+}
+
+class MoodTagData extends DataClass implements Insertable<MoodTagData> {
+  final int id;
+  final String label;
+  final String emoji;
+  final int? userId;
+  const MoodTagData({
+    required this.id,
+    required this.label,
+    required this.emoji,
+    this.userId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['label'] = Variable<String>(label);
+    map['emoji'] = Variable<String>(emoji);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<int>(userId);
+    }
+    return map;
+  }
+
+  MoodTagCompanion toCompanion(bool nullToAbsent) {
+    return MoodTagCompanion(
+      id: Value(id),
+      label: Value(label),
+      emoji: Value(emoji),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
+    );
+  }
+
+  factory MoodTagData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MoodTagData(
+      id: serializer.fromJson<int>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
+      emoji: serializer.fromJson<String>(json['emoji']),
+      userId: serializer.fromJson<int?>(json['userId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'label': serializer.toJson<String>(label),
+      'emoji': serializer.toJson<String>(emoji),
+      'userId': serializer.toJson<int?>(userId),
+    };
+  }
+
+  MoodTagData copyWith({
+    int? id,
+    String? label,
+    String? emoji,
+    Value<int?> userId = const Value.absent(),
+  }) => MoodTagData(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    emoji: emoji ?? this.emoji,
+    userId: userId.present ? userId.value : this.userId,
+  );
+  MoodTagData copyWithCompanion(MoodTagCompanion data) {
+    return MoodTagData(
+      id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
+      emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      userId: data.userId.present ? data.userId.value : this.userId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MoodTagData(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('emoji: $emoji, ')
+          ..write('userId: $userId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, label, emoji, userId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MoodTagData &&
+          other.id == this.id &&
+          other.label == this.label &&
+          other.emoji == this.emoji &&
+          other.userId == this.userId);
+}
+
+class MoodTagCompanion extends UpdateCompanion<MoodTagData> {
+  final Value<int> id;
+  final Value<String> label;
+  final Value<String> emoji;
+  final Value<int?> userId;
+  const MoodTagCompanion({
+    this.id = const Value.absent(),
+    this.label = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.userId = const Value.absent(),
+  });
+  MoodTagCompanion.insert({
+    this.id = const Value.absent(),
+    required String label,
+    required String emoji,
+    this.userId = const Value.absent(),
+  }) : label = Value(label),
+       emoji = Value(emoji);
+  static Insertable<MoodTagData> custom({
+    Expression<int>? id,
+    Expression<String>? label,
+    Expression<String>? emoji,
+    Expression<int>? userId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+      if (emoji != null) 'emoji': emoji,
+      if (userId != null) 'user_id': userId,
+    });
+  }
+
+  MoodTagCompanion copyWith({
+    Value<int>? id,
+    Value<String>? label,
+    Value<String>? emoji,
+    Value<int?>? userId,
+  }) {
+    return MoodTagCompanion(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      emoji: emoji ?? this.emoji,
+      userId: userId ?? this.userId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (emoji.present) {
+      map['emoji'] = Variable<String>(emoji.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MoodTagCompanion(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('emoji: $emoji, ')
+          ..write('userId: $userId')
           ..write(')'))
         .toString();
   }
@@ -702,11 +1100,12 @@ abstract class _$AppDataBase extends GeneratedDatabase {
   $AppDataBaseManager get managers => $AppDataBaseManager(this);
   late final $UserTable user = $UserTable(this);
   late final $EmotionTable emotion = $EmotionTable(this);
+  late final $MoodTagTable moodTag = $MoodTagTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [user, emotion];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [user, emotion, moodTag];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
@@ -715,6 +1114,13 @@ abstract class _$AppDataBase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('emotion', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('mood_tag', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -755,6 +1161,24 @@ final class $$UserTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_emotionRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MoodTagTable, List<MoodTagData>>
+  _moodTagRefsTable(_$AppDataBase db) => MultiTypedResultKey.fromTable(
+    db.moodTag,
+    aliasName: 'user__id__mood_tag__user_id',
+  );
+
+  $$MoodTagTableProcessedTableManager get moodTagRefs {
+    final manager = $$MoodTagTableTableManager(
+      $_db,
+      $_db.moodTag,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_moodTagRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -815,6 +1239,31 @@ class $$UserTableFilterComposer extends Composer<_$AppDataBase, $UserTable> {
           }) => $$EmotionTableFilterComposer(
             $db: $db,
             $table: $db.emotion,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> moodTagRefs(
+    Expression<bool> Function($$MoodTagTableFilterComposer f) f,
+  ) {
+    final $$MoodTagTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.moodTag,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MoodTagTableFilterComposer(
+            $db: $db,
+            $table: $db.moodTag,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -915,6 +1364,31 @@ class $$UserTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> moodTagRefs<T extends Object>(
+    Expression<T> Function($$MoodTagTableAnnotationComposer a) f,
+  ) {
+    final $$MoodTagTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.moodTag,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MoodTagTableAnnotationComposer(
+            $db: $db,
+            $table: $db.moodTag,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UserTableTableManager
@@ -930,7 +1404,7 @@ class $$UserTableTableManager
           $$UserTableUpdateCompanionBuilder,
           (UserData, $$UserTableReferences),
           UserData,
-          PrefetchHooks Function({bool emotionRefs})
+          PrefetchHooks Function({bool emotionRefs, bool moodTagRefs})
         > {
   $$UserTableTableManager(_$AppDataBase db, $UserTable table)
     : super(
@@ -981,10 +1455,13 @@ class $$UserTableTableManager
                     (e.readTable(table), $$UserTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({emotionRefs = false}) {
+          prefetchHooksCallback: ({emotionRefs = false, moodTagRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (emotionRefs) db.emotion],
+              explicitlyWatchedTables: [
+                if (emotionRefs) db.emotion,
+                if (moodTagRefs) db.moodTag,
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -1000,6 +1477,22 @@ class $$UserTableTableManager
                       ),
                       managerFromTypedResult: (p0) =>
                           $$UserTableReferences(db, table, p0).emotionRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.userId == item.id),
+                      typedResults: items,
+                    ),
+                  if (moodTagRefs)
+                    await $_getPrefetchedData<
+                      UserData,
+                      $UserTable,
+                      MoodTagData
+                    >(
+                      currentTable: table,
+                      referencedTable: $$UserTableReferences._moodTagRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$UserTableReferences(db, table, p0).moodTagRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where((e) => e.userId == item.id),
                       typedResults: items,
@@ -1024,7 +1517,7 @@ typedef $$UserTableProcessedTableManager =
       $$UserTableUpdateCompanionBuilder,
       (UserData, $$UserTableReferences),
       UserData,
-      PrefetchHooks Function({bool emotionRefs})
+      PrefetchHooks Function({bool emotionRefs, bool moodTagRefs})
     >;
 typedef $$EmotionTableCreateCompanionBuilder =
     EmotionCompanion Function({
@@ -1032,6 +1525,8 @@ typedef $$EmotionTableCreateCompanionBuilder =
       required int value,
       required int userId,
       Value<DateTime> createdAt,
+      Value<String?> note,
+      Value<String?> tags,
     });
 typedef $$EmotionTableUpdateCompanionBuilder =
     EmotionCompanion Function({
@@ -1039,6 +1534,8 @@ typedef $$EmotionTableUpdateCompanionBuilder =
       Value<int> value,
       Value<int> userId,
       Value<DateTime> createdAt,
+      Value<String?> note,
+      Value<String?> tags,
     });
 
 final class $$EmotionTableReferences
@@ -1084,6 +1581,16 @@ class $$EmotionTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tags => $composableBuilder(
+    column: $table.tags,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1135,6 +1642,16 @@ class $$EmotionTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tags => $composableBuilder(
+    column: $table.tags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$UserTableOrderingComposer get userId {
     final $$UserTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -1176,6 +1693,12 @@ class $$EmotionTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
 
   $$UserTableAnnotationComposer get userId {
     final $$UserTableAnnotationComposer composer = $composerBuilder(
@@ -1233,11 +1756,15 @@ class $$EmotionTableTableManager
                 Value<int> value = const Value.absent(),
                 Value<int> userId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> tags = const Value.absent(),
               }) => EmotionCompanion(
                 id: id,
                 value: value,
                 userId: userId,
                 createdAt: createdAt,
+                note: note,
+                tags: tags,
               ),
           createCompanionCallback:
               ({
@@ -1245,11 +1772,15 @@ class $$EmotionTableTableManager
                 required int value,
                 required int userId,
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> tags = const Value.absent(),
               }) => EmotionCompanion.insert(
                 id: id,
                 value: value,
                 userId: userId,
                 createdAt: createdAt,
+                note: note,
+                tags: tags,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -1318,6 +1849,298 @@ typedef $$EmotionTableProcessedTableManager =
       EmotionData,
       PrefetchHooks Function({bool userId})
     >;
+typedef $$MoodTagTableCreateCompanionBuilder =
+    MoodTagCompanion Function({
+      Value<int> id,
+      required String label,
+      required String emoji,
+      Value<int?> userId,
+    });
+typedef $$MoodTagTableUpdateCompanionBuilder =
+    MoodTagCompanion Function({
+      Value<int> id,
+      Value<String> label,
+      Value<String> emoji,
+      Value<int?> userId,
+    });
+
+final class $$MoodTagTableReferences
+    extends BaseReferences<_$AppDataBase, $MoodTagTable, MoodTagData> {
+  $$MoodTagTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserTable _userIdTable(_$AppDataBase db) =>
+      db.user.createAlias('mood_tag__user_id__user__id');
+
+  $$UserTableProcessedTableManager? get userId {
+    final $_column = $_itemColumn<int>('user_id');
+    if ($_column == null) return null;
+    final manager = $$UserTableTableManager(
+      $_db,
+      $_db.user,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MoodTagTableFilterComposer
+    extends Composer<_$AppDataBase, $MoodTagTable> {
+  $$MoodTagTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UserTableFilterComposer get userId {
+    final $$UserTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.user,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UserTableFilterComposer(
+            $db: $db,
+            $table: $db.user,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MoodTagTableOrderingComposer
+    extends Composer<_$AppDataBase, $MoodTagTable> {
+  $$MoodTagTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UserTableOrderingComposer get userId {
+    final $$UserTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.user,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UserTableOrderingComposer(
+            $db: $db,
+            $table: $db.user,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MoodTagTableAnnotationComposer
+    extends Composer<_$AppDataBase, $MoodTagTable> {
+  $$MoodTagTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get emoji =>
+      $composableBuilder(column: $table.emoji, builder: (column) => column);
+
+  $$UserTableAnnotationComposer get userId {
+    final $$UserTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.user,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UserTableAnnotationComposer(
+            $db: $db,
+            $table: $db.user,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MoodTagTableTableManager
+    extends
+        RootTableManager<
+          _$AppDataBase,
+          $MoodTagTable,
+          MoodTagData,
+          $$MoodTagTableFilterComposer,
+          $$MoodTagTableOrderingComposer,
+          $$MoodTagTableAnnotationComposer,
+          $$MoodTagTableCreateCompanionBuilder,
+          $$MoodTagTableUpdateCompanionBuilder,
+          (MoodTagData, $$MoodTagTableReferences),
+          MoodTagData,
+          PrefetchHooks Function({bool userId})
+        > {
+  $$MoodTagTableTableManager(_$AppDataBase db, $MoodTagTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MoodTagTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MoodTagTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MoodTagTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String> emoji = const Value.absent(),
+                Value<int?> userId = const Value.absent(),
+              }) => MoodTagCompanion(
+                id: id,
+                label: label,
+                emoji: emoji,
+                userId: userId,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String label,
+                required String emoji,
+                Value<int?> userId = const Value.absent(),
+              }) => MoodTagCompanion.insert(
+                id: id,
+                label: label,
+                emoji: emoji,
+                userId: userId,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MoodTagTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable: $$MoodTagTableReferences
+                                    ._userIdTable(db),
+                                referencedColumn: $$MoodTagTableReferences
+                                    ._userIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MoodTagTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDataBase,
+      $MoodTagTable,
+      MoodTagData,
+      $$MoodTagTableFilterComposer,
+      $$MoodTagTableOrderingComposer,
+      $$MoodTagTableAnnotationComposer,
+      $$MoodTagTableCreateCompanionBuilder,
+      $$MoodTagTableUpdateCompanionBuilder,
+      (MoodTagData, $$MoodTagTableReferences),
+      MoodTagData,
+      PrefetchHooks Function({bool userId})
+    >;
 
 class $AppDataBaseManager {
   final _$AppDataBase _db;
@@ -1325,4 +2148,6 @@ class $AppDataBaseManager {
   $$UserTableTableManager get user => $$UserTableTableManager(_db, _db.user);
   $$EmotionTableTableManager get emotion =>
       $$EmotionTableTableManager(_db, _db.emotion);
+  $$MoodTagTableTableManager get moodTag =>
+      $$MoodTagTableTableManager(_db, _db.moodTag);
 }

@@ -21,15 +21,24 @@ class Emotion extends Table {
   IntColumn get value => integer().check(value.isBetweenValues(1, 10))();
   IntColumn get userId => integer().references(User, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get note => text().nullable()();
+  TextColumn get tags => text().nullable()();
 }
 
-@DriftDatabase(tables: [User, Emotion])
+class MoodTag extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get label => text().withLength(min: 1, max: 20)();
+  TextColumn get emoji => text().withLength(min: 1, max: 5)();
+  IntColumn get userId => integer().nullable().references(User, #id, onDelete: KeyAction.cascade)(); // null means global/default
+}
+
+@DriftDatabase(tables: [User, Emotion, MoodTag])
 class AppDataBase extends _$AppDataBase {
   AppDataBase() : super(_openConnection());
   AppDataBase.forTesting(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 2; // Increment schema version as we added a new table
+  int get schemaVersion => 4; // Increment schema version for MoodTag table
 
   // User operations
   Future<int> createUser(UserCompanion entity) => into(user).insert(entity);
@@ -42,6 +51,8 @@ class AppDataBase extends _$AppDataBase {
   // Emotion operations
   Future<int> addEmotion(EmotionCompanion entity) => into(emotion).insert(entity);
   
+  Future<bool> updateEmotion(EmotionCompanion entity) => update(emotion).replace(entity);
+  
   Future<List<EmotionData>> getEmotionsForUser(int userId) =>
       (select(emotion)..where((e) => e.userId.equals(userId))..orderBy([(e) => OrderingTerm.desc(e.createdAt)])).get();
 
@@ -51,6 +62,14 @@ class AppDataBase extends _$AppDataBase {
   Future<void> deleteEmotionsBefore(int userId, DateTime date) =>
       (delete(emotion)..where((e) => e.userId.equals(userId) & e.createdAt.isSmallerThanValue(date))).go();
 
+  Future<void> deleteEmotion(int id) => (delete(emotion)..where((e) => e.id.equals(id))).go();
+
+  // Tag operations
+  Future<int> addTag(MoodTagCompanion entity) => into(moodTag).insert(entity);
+  Future<List<MoodTagData>> getTagsForUser(int userId) =>
+      (select(moodTag)..where((t) => t.userId.isNull() | t.userId.equals(userId))).get();
+  Future<int> deleteTag(int id) => (delete(moodTag)..where((t) => t.id.equals(id))).go();
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
@@ -59,11 +78,38 @@ class AppDataBase extends _$AppDataBase {
       },
       onUpgrade: (m, from, to) async {
         if (from < 2) {
-          // Add the Emotion table when upgrading from version 1
           await m.createTable(emotion);
+        }
+        if (from < 3) {
+          await m.addColumn(emotion, emotion.note);
+          await m.addColumn(emotion, emotion.tags);
+        }
+        if (from < 4) {
+          await m.createTable(moodTag);
         }
       },
       beforeOpen: (details) async {
+        // Seed tags if empty
+        final tags = await select(moodTag).get();
+        if (tags.isEmpty) {
+          final defaultTags = [
+            {'label': 'Work', 'emoji': '💼'},
+            {'label': 'Sport', 'emoji': '🏃‍♂️'},
+            {'label': 'Food', 'emoji': '🍎'},
+            {'label': 'Sleep', 'emoji': '😴'},
+            {'label': 'Family', 'emoji': '👨‍👩‍👧'},
+            {'label': 'Friends', 'emoji': '🤝'},
+            {'label': 'Hobby', 'emoji': '🎨'},
+            {'label': 'Weather', 'emoji': '☀️'},
+          ];
+          for (var tag in defaultTags) {
+            await into(moodTag).insert(MoodTagCompanion.insert(
+              label: tag['label']!,
+              emoji: tag['emoji']!,
+            ));
+          }
+        }
+
         // Seed the database with the default user if it's empty
         final users = await select(user).get();
         if (users.isEmpty) {

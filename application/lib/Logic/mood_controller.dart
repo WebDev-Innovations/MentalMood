@@ -21,6 +21,9 @@ class MoodController extends ChangeNotifier {
   List<EmotionData> _moodHistory = [];
   List<EmotionData> get moodHistory => _moodHistory;
 
+  List<MoodTagData> _availableTags = [];
+  List<MoodTagData> get availableTags => _availableTags;
+
   MoodRange _selectedRange = MoodRange.last7d;
   MoodRange get selectedRange => _selectedRange;
 
@@ -30,7 +33,12 @@ class MoodController extends ChangeNotifier {
   }
 
   /// Saves a new emotion entry for the user and refreshes history
-  Future<bool> saveMood({required int userId, required int value}) async {
+  Future<bool> saveMood({
+    required int userId,
+    required int value,
+    String? note,
+    List<String>? tags,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -40,6 +48,8 @@ class MoodController extends ChangeNotifier {
         value: value,
         userId: userId,
         createdAt: Value(DateTime.now()),
+        note: Value(note),
+        tags: Value(tags?.join(',')),
       ));
       
       await fetchMoodHistory(userId);
@@ -62,12 +72,45 @@ class MoodController extends ChangeNotifier {
 
     try {
       _moodHistory = await emotionRepository.getEmotionsForUser(userId);
+      await fetchAvailableTags(userId);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _errorMessage = "Could not load history.";
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> fetchAvailableTags(int userId) async {
+    try {
+      _availableTags = await emotionRepository.getTagsForUser(userId);
+    } catch (e) {
+      print("Error fetching tags: $e");
+    }
+  }
+
+  Future<void> addCustomTag(String label, String emoji, int userId) async {
+    try {
+      await emotionRepository.addTag(MoodTagCompanion.insert(
+        label: label,
+        emoji: emoji,
+        userId: Value(userId),
+      ));
+      await fetchAvailableTags(userId);
+      notifyListeners();
+    } catch (e) {
+      print("Error adding tag: $e");
+    }
+  }
+
+  Future<void> deleteTag(int tagId, int userId) async {
+    try {
+      await emotionRepository.deleteTag(tagId);
+      await fetchAvailableTags(userId);
+      notifyListeners();
+    } catch (e) {
+      print("Error deleting tag: $e");
     }
   }
 
@@ -106,6 +149,44 @@ class MoodController extends ChangeNotifier {
   Future<void> clearHistoryBefore(int userId, DateTime date) async {
     await emotionRepository.deleteEmotionsBefore(userId, date);
     await fetchMoodHistory(userId);
+  }
+
+  Future<void> deleteEmotion(int id, int userId) async {
+    await emotionRepository.deleteEmotion(id);
+    await fetchMoodHistory(userId);
+  }
+
+  Future<bool> updateEmotion({
+    required int id,
+    required int userId,
+    required int value,
+    String? note,
+    List<String>? tags,
+    required DateTime createdAt,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final success = await emotionRepository.updateEmotion(EmotionCompanion(
+        id: Value(id),
+        userId: Value(userId),
+        value: Value(value),
+        note: Value(note),
+        tags: Value(tags?.join(',')),
+        createdAt: Value(createdAt),
+      ));
+      
+      await fetchMoodHistory(userId);
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      _errorMessage = "Failed to update entry.";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   /// Returns processed data for the chart based on the selected range
