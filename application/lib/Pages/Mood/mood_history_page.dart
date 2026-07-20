@@ -1,6 +1,7 @@
 import 'package:application/Logic/login_controller.dart';
 import 'package:application/Logic/mood_controller.dart';
 import 'package:application/Pages/Mood/mood_detail_page.dart';
+import 'package:application/Utils/animations.dart';
 import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +17,6 @@ class MoodHistoryPage extends StatefulWidget {
 class _MoodHistoryPageState extends State<MoodHistoryPage> {
   String _searchText = '';
   bool _isFilterExpanded = false;
-  
   RangeValues _scoreRange = const RangeValues(1, 10);
   final List<String> _selectedTags = [];
 
@@ -26,131 +26,283 @@ class _MoodHistoryPageState extends State<MoodHistoryPage> {
     final theme = Theme.of(context);
     
     final history = moodController.moodHistory.where((e) {
-      final noteMatch = e.note?.toLowerCase().contains(_searchText.toLowerCase()) ?? false;
-      final tagsMatch = e.tags?.toLowerCase().contains(_searchText.toLowerCase()) ?? false;
-      final textMatch = _searchText.isEmpty || noteMatch || tagsMatch;
+      final textMatch = _searchText.isEmpty || 
+          (e.note?.toLowerCase().contains(_searchText.toLowerCase()) ?? false) ||
+          (e.tags?.toLowerCase().contains(_searchText.toLowerCase()) ?? false);
       final scoreMatch = e.value >= _scoreRange.start && e.value <= _scoreRange.end;
-
-      bool tagsFilterMatch = true;
-      if (_selectedTags.isNotEmpty) {
-        if (e.tags == null) {
-          tagsFilterMatch = false;
-        } else {
-          final entryTags = e.tags!.split(',');
-          tagsFilterMatch = _selectedTags.every((tag) => entryTags.contains(tag));
-        }
-      }
+      final tagsFilterMatch = _selectedTags.isEmpty || 
+          (_selectedTags.every((tag) => e.tags?.contains(tag) ?? false));
       return textMatch && scoreMatch && tagsFilterMatch;
     }).toList();
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Mood History"),
+        title: const Text("Journal History"),
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(_isFilterExpanded ? Icons.filter_list_off : Icons.filter_list),
+            icon: Icon(_isFilterExpanded ? Icons.filter_list_off_rounded : Icons.filter_list_rounded),
             onPressed: () => setState(() => _isFilterExpanded = !_isFilterExpanded),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(_isFilterExpanded ? 240 : 70),
-          child: Column(
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+            child: TextField(
+              onChanged: (v) => setState(() => _searchText = v),
+              decoration: InputDecoration(
+                hintText: "Search your reflections...",
+                prefixIcon: const Icon(Icons.search_rounded),
+                fillColor: theme.colorScheme.surface,
+              ),
+            ),
+          ),
+          if (_isFilterExpanded) _buildFilterPanel(context, moodController),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                final user = context.read<LoginController>().currentUser;
+                if (user != null) {
+                  await moodController.fetchMoodHistory(user.id);
+                }
+              },
+              color: AppTheme.sagePrimary,
+              backgroundColor: theme.colorScheme.surface,
+              child: history.isEmpty
+                  ? SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.6,
+                        child: _buildEmptyState(context),
+                      ),
+                    )
+                    : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                      clipBehavior: Clip.none, // Allow hover scale without clipping
+                      itemCount: history.length,
+                      itemBuilder: (context, index) {
+                        final entry = history[index];
+                        return FadeInSlide(
+                          duration: 300 + (index * 50).clamp(0, 500),
+                          direction: const Offset(20, 0),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: HoverEffect(
+                              scale: 1.02,
+                              child: _JournalEntryTile(entry: entry),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterPanel(BuildContext context, MoodController controller) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.2 : 0.02), 
+            blurRadius: 40, 
+            offset: const Offset(0, 10)
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "Search notes or tags...",
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: theme.cardColor,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+              Text(
+                "SCORE RANGE", 
+                style: TextStyle(
+                  fontWeight: FontWeight.w800, 
+                  letterSpacing: 1, 
+                  fontSize: 11, 
+                  color: theme.colorScheme.onSurface.withOpacity(0.4)
+                )
+              ),
+              Text(
+                "${_scoreRange.start.round()} - ${_scoreRange.end.round()}", 
+                style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)
+              ),
+            ],
+          ),
+          RangeSlider(
+            values: _scoreRange,
+            min: 1, max: 10, divisions: 9,
+            activeColor: theme.colorScheme.primary,
+            onChanged: (v) => setState(() => _scoreRange = v),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "FILTER BY TAGS", 
+            style: TextStyle(
+              fontWeight: FontWeight.w800, 
+              letterSpacing: 1, 
+              fontSize: 11, 
+              color: theme.colorScheme.onSurface.withOpacity(0.4)
+            )
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: controller.availableTags.map((tag) {
+                final isSelected = _selectedTags.contains(tag.label);
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: FilterChip(
+                    label: Text(tag.label, style: const TextStyle(fontSize: 12)),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedTags.add(tag.label);
+                        } else {
+                          _selectedTags.remove(tag.label);
+                        }
+                      });
+                    },
+                    backgroundColor: theme.colorScheme.surface,
+                    selectedColor: theme.colorScheme.primary.withOpacity(0.1),
+                    checkmarkColor: theme.colorScheme.primary,
                   ),
-                  onChanged: (value) => setState(() => _searchText = value),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.auto_stories_outlined, size: 80, color: theme.colorScheme.onSurface.withOpacity(0.1)),
+          const SizedBox(height: 24),
+          Text(
+            "Your history is quiet.", 
+            style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.3), fontSize: 16, fontWeight: FontWeight.w500)
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _JournalEntryTile extends StatelessWidget {
+  final dynamic entry;
+  const _JournalEntryTile({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final date = DateFormat('MMMM d').format(entry.createdAt);
+    final time = DateFormat.Hm().format(entry.createdAt);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.1 : 0.01), 
+            blurRadius: 20, 
+            offset: const Offset(0, 4)
+          )
+        ],
+      ),
+      child: InkWell(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => MoodDetailPage(entry: entry))),
+        borderRadius: BorderRadius.circular(32),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: _getEmotionColor(entry.value).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    _getEmoji(entry.value), 
+                    style: const TextStyle(fontSize: 32)
+                  )
                 ),
               ),
-              if (_isFilterExpanded)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Mood Score: ${_scoreRange.start.round()} - ${_scoreRange.end.round()}", style: theme.textTheme.bodySmall),
-                          TextButton(
-                            onPressed: () => setState(() { _scoreRange = const RangeValues(1, 10); _selectedTags.clear(); }),
-                            child: const Text("Reset", style: TextStyle(fontSize: 12)),
-                          ),
-                        ],
-                      ),
-                      RangeSlider(
-                        values: _scoreRange,
-                        min: 1,
-                        max: 10,
-                        divisions: 9,
-                        activeColor: AppTheme.primarySage,
-                        onChanged: (values) => setState(() => _scoreRange = values),
-                      ),
-                      const SizedBox(height: 8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: moodController.availableTags.map((tag) {
-                            final isSelected = _selectedTags.contains(tag.label);
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: FilterChip(
-                                label: Text("${tag.emoji} ${tag.label}", style: const TextStyle(fontSize: 12)),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) _selectedTags.add(tag.label);
-                                    else _selectedTags.remove(tag.label);
-                                  });
-                                },
-                                selectedColor: AppTheme.primarySage.withOpacity(0.2),
-                              ),
-                            );
-                          }).toList(),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(date, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Spacer(),
+                        Text(
+                          time, 
+                          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.2), fontSize: 12)
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (entry.note != null && entry.note!.isNotEmpty)
+                      Text(
+                        entry.note!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), height: 1.4, fontSize: 13),
+                      )
+                    else
+                      Text(
+                        "Mood level ${entry.value}", 
+                        style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.3), fontSize: 13)
                       ),
-                    ],
-                  ),
+                  ],
                 ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurface.withOpacity(0.1)),
             ],
           ),
         ),
       ),
-      body: history.isEmpty
-          ? const Center(child: Text("No entries found"))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: history.length,
-              itemBuilder: (context, index) {
-                final entry = history[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: Text(_getEmojiForValue(entry.value), style: const TextStyle(fontSize: 32)),
-                    title: Text("Score: ${entry.value}/10", style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(DateFormat.yMMMMd().add_Hm().format(entry.createdAt)),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => MoodDetailPage(entry: entry)),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
     );
   }
 
-  String _getEmojiForValue(int value) {
+  Color _getEmotionColor(int value) {
+    if (value <= 3) return AppTheme.terracottaError;
+    if (value <= 6) return AppTheme.sagePrimary;
+    return AppTheme.oliveSecondary;
+  }
+
+  String _getEmoji(int value) {
     final emojis = ['😫', '😞', '☹️', '🙁', '😐', '🙂', '😊', '😁', '🤩', '🥳'];
     return emojis[(value - 1).clamp(0, 9)];
   }

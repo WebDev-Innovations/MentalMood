@@ -302,7 +302,7 @@ class MoodController extends ChangeNotifier {
 
     switch (_selectedRange) {
       case MoodRange.last24h:
-        cutoff = now.subtract(const Duration(hours: 24));
+        cutoff = DateTime(now.year, now.month, now.day); // Start of today
         groupByDay = false;
         break;
       case MoodRange.last7d:

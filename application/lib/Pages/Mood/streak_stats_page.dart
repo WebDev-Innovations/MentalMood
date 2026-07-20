@@ -1,4 +1,5 @@
 import 'package:application/Logic/mood_controller.dart';
+import 'package:application/Utils/animations.dart';
 import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,102 +15,142 @@ class StreakStatsPage extends StatelessWidget {
     final longestStreak = moodController.getLongestStreak();
     final theme = Theme.of(context);
     final history = moodController.moodHistory;
-
     final totalDays = history.map((e) => DateFormat('yyyy-MM-dd').format(e.createdAt)).toSet().length;
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Streak Journey"),
+        title: const Text("Consistency"),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
+        physics: const BouncingScrollPhysics(),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Current Streak Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.orange.shade400, Colors.orange.shade800],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            // Epic Streak Hero
+            FadeInSlide(
+              duration: 800,
+              direction: const Offset(0, -40),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 60),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.amberWarm, Color(0xFFFF8A65)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(48),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF8A65).withOpacity(theme.brightness == Brightness.dark ? 0.2 : 0.4), 
+                      blurRadius: 40, 
+                      offset: const Offset(0, 15)
+                    )
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.orange.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+                child: Column(
+                  children: [
+                    const Icon(Icons.local_fire_department_rounded, size: 100, color: Colors.white),
+                    TweenAnimationBuilder<int>(
+                      duration: const Duration(milliseconds: 1500),
+                      tween: IntTween(begin: 0, end: streak),
+                      builder: (context, value, child) => Text(
+                        "$value",
+                        style: const TextStyle(fontSize: 100, fontWeight: FontWeight.w900, color: Colors.white, height: 1),
+                      ),
+                    ),
+                    const Text(
+                      "DAY STREAK",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 4, color: Colors.white70),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
+            ),
+            
+            const SizedBox(height: 40),
+            
+            // Stats Grid
+            FadeInSlide(
+              duration: 1000,
+              child: Row(
                 children: [
-                  const Icon(Icons.local_fire_department_rounded, size: 80, color: Colors.white),
-                  Text(
-                    "$streak",
-                    style: const TextStyle(fontSize: 72, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const Text(
-                    "DAY STREAK",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 2, color: Colors.white70),
-                  ),
+                  _buildMetric(context, "Best", "$longestStreak", Icons.emoji_events_rounded, Colors.amber),
+                  const SizedBox(width: 16),
+                  _buildMetric(context, "Active", "$totalDays", Icons.calendar_today_rounded, Colors.blueAccent),
+                  const SizedBox(width: 16),
+                  _buildMetric(context, "Logs", "${history.length}", Icons.edit_note_rounded, theme.colorScheme.primary),
                 ],
               ),
             ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 56),
             
-            // Stats Row
-            Row(
-              children: [
-                _buildSimpleStat(context, "Best Record", "$longestStreak Days", Icons.emoji_events_rounded, Colors.amber),
-                const SizedBox(width: 12),
-                _buildSimpleStat(context, "Days Active", "$totalDays Days", Icons.calendar_today_rounded, Colors.blue),
-                const SizedBox(width: 12),
-                _buildSimpleStat(context, "Total Logs", "${history.length}", Icons.edit_note_rounded, AppTheme.primarySage),
-              ],
-            ),
-
-            const SizedBox(height: 48),
-            
-            // Monthly Activity Heatmap
-            Text("Activity Map", style: theme.textTheme.titleLarge),
+            _buildSectionLabel(context, "Activity: ${DateFormat('MMMM yyyy').format(DateTime.now())}"),
             const SizedBox(height: 16),
             _buildMonthlyHeatmap(context, history),
             
             const SizedBox(height: 48),
             
-            // Next Milestones
-            Text("Next Milestones", style: theme.textTheme.titleLarge),
+            _buildSectionLabel(context, "Upcoming Goals"),
             const SizedBox(height: 16),
-            _buildMilestones(streak),
+            _buildMilestones(context, streak),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 60),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSimpleStat(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildSectionLabel(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontWeight: FontWeight.w800, 
+          letterSpacing: 2, 
+          fontSize: 11, 
+          color: theme.colorScheme.onSurface.withOpacity(0.3)
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetric(BuildContext context, String label, String value, IconData icon, Color color) {
     final theme = Theme.of(context);
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: theme.dividerColor.withOpacity(0.05)),
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.2 : 0.02),
+              blurRadius: 20, 
+              offset: const Offset(0, 4)
+            )
+          ],
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-            Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 12),
+            Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+            Text(
+              label.toUpperCase(), 
+              style: TextStyle(
+                fontSize: 9, 
+                fontWeight: FontWeight.w800, 
+                color: theme.colorScheme.onSurface.withOpacity(0.3)
+              )
+            ),
           ],
         ),
       ),
@@ -120,31 +161,21 @@ class StreakStatsPage extends StatelessWidget {
     final theme = Theme.of(context);
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final startPadding = firstDayOfMonth.weekday - 1;
-
-    final recordedDays = history
-        .map((e) => DateFormat('yyyy-MM-dd').format(e.createdAt))
-        .toSet();
+    final startPadding = DateTime(now.year, now.month, 1).weekday - 1;
+    final recordedDays = history.map((e) => DateFormat('yyyy-MM-dd').format(e.createdAt)).toSet();
 
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(24),
-      ),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(40)),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 7,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
+          crossAxisCount: 7, mainAxisSpacing: 10, crossAxisSpacing: 10,
         ),
         itemCount: daysInMonth + startPadding,
         itemBuilder: (context, index) {
           if (index < startPadding) return const SizedBox.shrink();
-          
           final day = index - startPadding + 1;
           final dateStr = DateFormat('yyyy-MM-dd').format(DateTime(now.year, now.month, day));
           final isRecorded = recordedDays.contains(dateStr);
@@ -152,21 +183,15 @@ class StreakStatsPage extends StatelessWidget {
 
           return Container(
             decoration: BoxDecoration(
-              color: isRecorded 
-                  ? Colors.orange 
-                  : (isToday ? Colors.orange.withOpacity(0.1) : theme.dividerColor.withOpacity(0.05)),
-              borderRadius: BorderRadius.circular(8),
-              border: isToday ? Border.all(color: Colors.orange, width: 2) : null,
+              color: isRecorded ? AppTheme.amberWarm : (isToday ? AppTheme.amberWarm.withOpacity(0.1) : theme.colorScheme.onSurface.withOpacity(0.05)),
+              borderRadius: BorderRadius.circular(12),
+              border: isToday ? Border.all(color: AppTheme.amberWarm, width: 2) : null,
             ),
             child: Center(
-              child: Text(
-                "$day",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                  color: isRecorded ? Colors.white : (isToday ? Colors.orange : Colors.grey),
-                ),
-              ),
+              child: Text("$day", style: TextStyle(
+                fontSize: 13, fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                color: isRecorded ? Colors.white : (isToday ? AppTheme.amberWarm : theme.colorScheme.onSurface.withOpacity(0.2)),
+              )),
             ),
           );
         },
@@ -174,44 +199,48 @@ class StreakStatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMilestones(int currentStreak) {
-    final milestones = [7, 14, 30, 50, 100, 365];
+  Widget _buildMilestones(BuildContext context, int streak) {
+    final theme = Theme.of(context);
+    final milestones = [7, 14, 30, 50, 100];
     return Column(
       children: milestones.map((m) {
-        final isReached = currentStreak >= m;
-        final progress = (currentStreak / m).clamp(0.0, 1.0);
-        
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+        final progress = (streak / m).clamp(0.0, 1.0);
+        final isReached = streak >= m;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(32),
+          ),
           child: Row(
             children: [
               Icon(
-                isReached ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                color: isReached ? AppTheme.primarySage : Colors.grey.withOpacity(0.5),
+                isReached ? Icons.stars_rounded : Icons.lock_outline_rounded, 
+                color: isReached ? AppTheme.amberWarm : theme.colorScheme.onSurface.withOpacity(0.1), 
+                size: 40
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("$m Day Goal", style: TextStyle(
-                          fontWeight: isReached ? FontWeight.bold : FontWeight.normal,
-                          color: isReached ? null : Colors.grey,
-                        )),
-                        if (!isReached) Text("${m - currentStreak} to go", style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                      ],
+                    Text(
+                      "$m Day Goal", 
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900, 
+                        fontSize: 16, 
+                        color: isReached ? null : theme.colorScheme.onSurface.withOpacity(0.3)
+                      )
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Colors.grey.withOpacity(0.1),
-                        color: isReached ? AppTheme.primarySage : Colors.orange.withOpacity(0.5),
-                        minHeight: 6,
+                        backgroundColor: theme.colorScheme.onSurface.withOpacity(0.03),
+                        color: isReached ? theme.colorScheme.primary : AppTheme.amberWarm.withOpacity(0.4),
+                        minHeight: 12,
                       ),
                     ),
                   ],

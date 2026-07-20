@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:application/Utils/theme.dart';
 import 'package:flutter/material.dart';
 
-enum BreathPhase { ready, countdown, inhale, hold, exhale, finished }
+enum BreathPhase { ready, inhale, hold, exhale }
 
 class ZenModePage extends StatefulWidget {
   const ZenModePage({super.key});
@@ -16,22 +16,17 @@ class _ZenModePageState extends State<ZenModePage> with SingleTickerProviderStat
   late Animation<double> _sizeAnimation;
   
   BreathPhase _phase = BreathPhase.ready;
-  String _instruction = "Feeling overwhelmed? Let's find your center.";
-  int _countdownValue = 3;
-  double _phaseProgress = 0.0;
+  String _instruction = "Find a quiet space and settle in.";
+  double _progress = 0.0;
   Timer? _timer;
-  Stopwatch _phaseStopwatch = Stopwatch();
+  final Stopwatch _stopwatch = Stopwatch();
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4), // Default for inhale
-    );
-
-    _sizeAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 4));
+    _sizeAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut)
     );
   }
 
@@ -42,201 +37,169 @@ class _ZenModePageState extends State<ZenModePage> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _startPanicSequence() {
-    setState(() {
-      _phase = BreathPhase.countdown;
-      _countdownValue = 3;
-      _instruction = "Get ready to breathe...";
-    });
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_countdownValue > 1) {
-        setState(() => _countdownValue--);
-      } else {
-        timer.cancel();
-        _runBreathingCycle();
-      }
-    });
+  void _start() async {
+    setState(() => _phase = BreathPhase.inhale);
+    _runCycle();
   }
 
-  void _runBreathingCycle() async {
-    if (!mounted) return;
+  void _runCycle() async {
+    if (!mounted || _phase == BreathPhase.ready) return;
 
-    // 1. INHALE (4s)
-    _startPhase(BreathPhase.inhale, 4, "Breathe in deeply", true);
+    // INHALE
+    _updatePhase(BreathPhase.inhale, 4, "Breathe in deeply...");
+    _controller.forward(from: 0.0);
     await Future.delayed(const Duration(seconds: 4));
     if (!mounted || _phase == BreathPhase.ready) return;
 
-    // 2. HOLD (7s)
-    _startPhase(BreathPhase.hold, 7, "Hold your breath", false);
+    // HOLD
+    _updatePhase(BreathPhase.hold, 7, "Hold your breath...");
     await Future.delayed(const Duration(seconds: 7));
     if (!mounted || _phase == BreathPhase.ready) return;
 
-    // 3. EXHALE (8s)
-    _startPhase(BreathPhase.exhale, 8, "Breathe out slowly", false);
+    // EXHALE
+    _updatePhase(BreathPhase.exhale, 8, "Slowly release everything...");
     _controller.reverse(from: 1.0);
     await Future.delayed(const Duration(seconds: 8));
-    
-    if (mounted && _phase != BreathPhase.ready) {
-      _runBreathingCycle(); // Loop
-    }
+
+    if (mounted && _phase != BreathPhase.ready) _runCycle();
   }
 
-  void _startPhase(BreathPhase phase, int seconds, String instruction, bool animForward) {
-    setState(() {
-      _phase = phase;
-      _instruction = instruction;
-      _phaseProgress = 0.0;
-    });
-
-    if (animForward) {
-      _controller.duration = Duration(seconds: seconds);
-      _controller.forward(from: 0.0);
-    } else if (phase == BreathPhase.exhale) {
-      _controller.duration = Duration(seconds: seconds);
-    }
-
-    _phaseStopwatch.reset();
-    _phaseStopwatch.start();
-
+  void _updatePhase(BreathPhase p, int sec, String msg) {
+    setState(() { _phase = p; _instruction = msg; _progress = 0.0; });
+    _stopwatch.reset(); _stopwatch.start();
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (!mounted || _phase == BreathPhase.ready) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        _phaseProgress = (_phaseStopwatch.elapsedMilliseconds / (seconds * 1000)).clamp(0.0, 1.0);
-      });
-      if (_phaseProgress >= 1.0) timer.cancel();
+    _timer = Timer.periodic(const Duration(milliseconds: 16), (t) {
+      if (!mounted || _phase == BreathPhase.ready) { t.cancel(); return; }
+      setState(() => _progress = (_stopwatch.elapsedMilliseconds / (sec * 1000)).clamp(0.0, 1.0));
     });
   }
 
-  void _stop() {
-    _timer?.cancel();
-    _phaseStopwatch.stop();
-    _phaseStopwatch.reset();
-    _controller.stop();
-    setState(() {
-      _phase = BreathPhase.ready;
-      _phaseProgress = 0.0;
-      _countdownValue = 3;
-      _instruction = "You're safe now. Breathe at your own pace.";
-    });
-  }
-
-  Color _getPhaseColor() {
+  Color _getPhaseColor(ThemeData theme) {
     switch (_phase) {
-      case BreathPhase.inhale: return Colors.blueAccent;
+      case BreathPhase.inhale: return theme.colorScheme.primary;
       case BreathPhase.hold: return Colors.purpleAccent;
-      case BreathPhase.exhale: return AppTheme.primarySage;
-      case BreathPhase.countdown: return Colors.orangeAccent;
-      default: return AppTheme.primarySage;
+      case BreathPhase.exhale: return theme.colorScheme.secondary;
+      default: return theme.colorScheme.error;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final phaseColor = _getPhaseColor();
+    final color = _getPhaseColor(theme);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text("Panic Button"),
-        elevation: 0,
-      ),
-      body: Container(
+      body: AnimatedContainer(
+        duration: const Duration(seconds: 1),
         width: double.infinity,
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            
-            // Progress Ring + Breathing Circle
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 320,
-                  height: 320,
-                  child: CircularProgressIndicator(
-                    value: _phaseProgress,
-                    strokeWidth: 8,
-                    color: phaseColor.withOpacity(0.4),
-                    backgroundColor: phaseColor.withOpacity(0.05),
-                  ),
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            colors: [color.withOpacity(0.08), theme.scaffoldBackgroundColor],
+            center: Alignment.center, radius: 1.2,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.close_rounded, color: theme.colorScheme.onSurface.withOpacity(0.3)), 
+                      onPressed: () => Navigator.pop(context)
+                    ),
+                    const Spacer(),
+                    Text(
+                      "PANIC BUTTON", 
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900, 
+                        letterSpacing: 3, 
+                        fontSize: 10, 
+                        color: theme.colorScheme.onSurface.withOpacity(0.2)
+                      )
+                    ),
+                    const Spacer(),
+                    const SizedBox(width: 48),
+                  ],
                 ),
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return Container(
-                      width: 260 * _sizeAnimation.value,
-                      height: 260 * _sizeAnimation.value,
+              ),
+              const Spacer(),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 320, height: 320,
+                    child: CircularProgressIndicator(
+                      value: _progress, 
+                      strokeWidth: 4, 
+                      color: color.withOpacity(0.3), 
+                      backgroundColor: Colors.transparent
+                    ),
+                  ),
+                  AnimatedBuilder(
+                    animation: _sizeAnimation,
+                    builder: (context, child) => Container(
+                      width: 260 * _sizeAnimation.value, height: 260 * _sizeAnimation.value,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: phaseColor.withOpacity(0.15),
+                        color: color.withOpacity(0.15),
                         boxShadow: [
-                          BoxShadow(
-                            color: phaseColor.withOpacity(0.2),
-                            blurRadius: 40,
-                            spreadRadius: 5,
-                          ),
+                          BoxShadow(color: color.withOpacity(0.2), blurRadius: 60, spreadRadius: 5)
                         ],
                       ),
                       child: Center(
-                        child: _phase == BreathPhase.countdown
-                          ? Text("$_countdownValue", style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: Colors.orangeAccent))
-                          : Text(
-                              _phase == BreathPhase.inhale ? "INHALE" : 
-                              _phase == BreathPhase.hold ? "HOLD" : 
-                              _phase == BreathPhase.exhale ? "EXHALE" : "READY",
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: phaseColor,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                              ),
-                            ),
+                        child: Text(
+                          _phase == BreathPhase.ready ? "READY" : _phase.name.toUpperCase(),
+                          style: TextStyle(color: color, fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 18),
+                        ),
                       ),
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 80),
-            
-            Text(
-              _instruction,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-                height: 1.5,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            
-            const Spacer(),
-            
-            if (_phase == BreathPhase.ready)
-              ElevatedButton(
-                onPressed: _startPanicSequence,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
-                  elevation: 8,
-                  shadowColor: Colors.redAccent.withOpacity(0.5),
+              const SizedBox(height: 80),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 48),
+                child: Text(
+                  _instruction, 
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.4), height: 1.5)
                 ),
-                child: const Text("I'M OVERWHELMED", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              )
-            else
-              TextButton(
-                onPressed: _stop,
-                child: Text("STOP SESSION", style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
               ),
-            const SizedBox(height: 20),
-          ],
+              const Spacer(),
+              if (_phase == BreathPhase.ready)
+                Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: ElevatedButton(
+                    onPressed: _start,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.error,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                      elevation: 4,
+                    ),
+                    child: const Text(
+                      "I NEED SUPPORT NOW", 
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1),
+                    ),
+                  ),
+                )
+              else
+                TextButton(
+                  onPressed: () => setState(() {
+                    _phase = BreathPhase.ready;
+                    _instruction = "Taking a break is okay.";
+                    _progress = 0;
+                    _controller.stop();
+                  }), 
+                  child: Text("STOP SESSION", style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.3), fontWeight: FontWeight.bold))
+                ),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
