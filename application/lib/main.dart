@@ -5,6 +5,7 @@ import 'package:application/Logic/register_controller.dart';
 import 'package:application/Pages/Access/login.dart';
 import 'package:application/Pages/Mood/add_mood_page.dart';
 import 'package:application/Pages/Mood/mood_history_page.dart';
+import 'package:application/Pages/Mood/streak_stats_page.dart';
 import 'package:application/Pages/homePage.dart';
 import 'package:application/Pages/Settings/settings_page.dart';
 import 'package:application/Repositories/drift_emotion_repository.dart';
@@ -65,6 +66,7 @@ void main() async {
           '/home': (context) => const HomePage(),
           '/settings': (context) => const SettingsPage(),
           '/history': (context) => const MoodHistoryPage(),
+          '/streak': (context) => const StreakStatsPage(),
         },
       ),
     ),

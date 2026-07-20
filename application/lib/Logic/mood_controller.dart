@@ -292,6 +292,67 @@ class MoodController extends ChangeNotifier {
     if (avg <= 8.5) return {"label": "Good Day", "emoji": "🙂", "color": const Color(0xFF6DA48D)};
     return {"label": "Fantastic!", "emoji": "🤩", "color": Colors.orange};
   }
+
+  int getStreak() {
+    if (_moodHistory.isEmpty) return 0;
+
+    final sortedEntries = List<EmotionData>.from(_moodHistory)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    final Set<String> daysRecorded = sortedEntries
+        .map((e) => DateFormat('yyyy-MM-dd').format(e.createdAt))
+        .toSet();
+
+    final now = DateTime.now();
+    final today = DateFormat('yyyy-MM-dd').format(now);
+    final yesterday = DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 1)));
+
+    if (!daysRecorded.contains(today) && !daysRecorded.contains(yesterday)) {
+      return 0;
+    }
+
+    int streak = 0;
+    DateTime checkDate = daysRecorded.contains(today) ? now : now.subtract(const Duration(days: 1));
+
+    while (daysRecorded.contains(DateFormat('yyyy-MM-dd').format(checkDate))) {
+      streak++;
+      checkDate = checkDate.subtract(const Duration(days: 1));
+    }
+
+    return streak;
+  }
+
+  int getLongestStreak() {
+    if (_moodHistory.isEmpty) return 0;
+
+    final sortedEntries = List<EmotionData>.from(_moodHistory)
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+    final Set<String> daysRecorded = sortedEntries
+        .map((e) => DateFormat('yyyy-MM-dd').format(e.createdAt))
+        .toSet();
+
+    if (daysRecorded.isEmpty) return 0;
+
+    List<String> sortedDays = daysRecorded.toList()..sort();
+    
+    int longest = 0;
+    int current = 0;
+    DateTime? lastDate;
+
+    for (String dayStr in sortedDays) {
+      DateTime date = DateTime.parse(dayStr);
+      if (lastDate == null || date.difference(lastDate).inDays == 1) {
+        current++;
+      } else {
+        if (current > longest) longest = current;
+        current = 1;
+      }
+      lastDate = date;
+    }
+
+    return current > longest ? current : longest;
+  }
 }
 
 class ChartMoodPoint {

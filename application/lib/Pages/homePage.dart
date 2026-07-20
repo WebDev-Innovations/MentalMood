@@ -35,6 +35,7 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
     final chartData = moodController.getChartData();
     final todayStatus = moodController.getTodayStatus();
+    final streak = moodController.getStreak();
 
     return Scaffold(
       appBar: AppBar(
@@ -45,6 +46,36 @@ class _HomePageState extends State<HomePage> {
           onPressed: () => Navigator.of(context).pushNamed('/settings'),
         ),
         actions: [
+          // Duolingo-style Streak Widget
+          GestureDetector(
+            onTap: () => Navigator.of(context).pushNamed('/streak'),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: streak > 0 ? Colors.orange.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.local_fire_department_rounded,
+                    color: streak > 0 ? Colors.orange : Colors.grey,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    "$streak",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: streak > 0 ? Colors.orange : Colors.grey,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.auto_awesome_rounded),
             tooltip: 'Seed Mock Data',
@@ -66,6 +97,52 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (streak > 0) ...[
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pushNamed('/streak'),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.orange.shade400, Colors.orange.shade700],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 32),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "$streak Day Streak!",
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                              Text(
+                                "You're on fire! Keep tracking your mood every day.",
+                                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right_rounded, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
               Text(
                 "Today's Overview",
                 style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
@@ -116,7 +193,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              
               const SizedBox(height: 32),
               
               Text(
