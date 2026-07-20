@@ -291,7 +291,13 @@ class _AddMoodPageState extends State<AddMoodPage> {
                                       behavior: SnackBarBehavior.floating,
                                     ),
                                   );
-                                  Navigator.of(context).pop();
+
+                                  // Check if mood is low (<= 3) to suggest Zen Mode
+                                  if (_currentValue.round() <= 3) {
+                                    _showZenModeSuggestion(context);
+                                  } else {
+                                    Navigator.of(context).pop();
+                                  }
                                 }
                               },
                         child: moodController.isLoading
@@ -310,6 +316,48 @@ class _AddMoodPageState extends State<AddMoodPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showZenModeSuggestion(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+            SizedBox(width: 12),
+            Text("Panic Support"),
+          ],
+        ),
+        content: const Text(
+          "It seems like you're feeling very overwhelmed. Would you like to use the Panic Button for an immediate breathing exercise?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx); 
+              Navigator.pop(context); 
+            },
+            child: const Text("NOT NOW", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+              Navigator.of(context).pushNamed('/zen');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("ACTIVATE PANIC BUTTON"),
+          ),
+        ],
       ),
     );
   }

@@ -149,6 +149,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 24),
               ],
+              
               Text(
                 "Today's Overview",
                 style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
@@ -245,17 +246,33 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const AddMoodPage()),
-          );
-        },
-        backgroundColor: AppTheme.primarySage,
-        foregroundColor: Colors.white,
-        shape: const CircleBorder(),
-        elevation: 6,
-        child: const Icon(Icons.add, size: 32),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          FloatingActionButton(
+            heroTag: "panic_btn",
+            onPressed: () => Navigator.of(context).pushNamed('/zen'),
+            backgroundColor: Colors.redAccent,
+            foregroundColor: Colors.white,
+            shape: const CircleBorder(),
+            elevation: 6,
+            child: const Icon(Icons.emergency_rounded, size: 28),
+          ),
+          const SizedBox(width: 20),
+          FloatingActionButton(
+            heroTag: "add_mood_btn",
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const AddMoodPage()),
+              );
+            },
+            backgroundColor: AppTheme.primarySage,
+            foregroundColor: Colors.white,
+            shape: const CircleBorder(),
+            elevation: 6,
+            child: const Icon(Icons.add, size: 32),
+          ),
+        ],
       ),
     );
   }
