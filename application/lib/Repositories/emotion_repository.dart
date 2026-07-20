@@ -12,4 +12,8 @@ abstract class EmotionRepository {
   Future<int> addTag(MoodTagCompanion tag);
   Future<List<MoodTagData>> getTagsForUser(int userId);
   Future<int> deleteTag(int id);
+
+  // Badge operations
+  Future<int> unlockBadge(BadgeCompanion badge);
+  Future<List<BadgeData>> getBadgesForUser(int userId);
 }

@@ -24,6 +24,7 @@ class StreakStatsPage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Current Streak Card
             Container(
@@ -61,32 +62,28 @@ class StreakStatsPage extends StatelessWidget {
             
             const SizedBox(height: 32),
             
-            // Personal Best Row
+            // Stats Row
             Row(
               children: [
                 _buildSimpleStat(context, "Best Record", "$longestStreak Days", Icons.emoji_events_rounded, Colors.amber),
-                const SizedBox(width: 16),
-                _buildSimpleStat(context, "Total Days", "$totalDays Days", Icons.calendar_today_rounded, Colors.blue),
+                const SizedBox(width: 12),
+                _buildSimpleStat(context, "Days Active", "$totalDays Days", Icons.calendar_today_rounded, Colors.blue),
+                const SizedBox(width: 12),
+                _buildSimpleStat(context, "Total Logs", "${history.length}", Icons.edit_note_rounded, AppTheme.primarySage),
               ],
             ),
-            
-            const SizedBox(height: 40),
+
+            const SizedBox(height: 48),
             
             // Monthly Activity Heatmap
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Current Month Activity", style: theme.textTheme.titleLarge),
-            ),
+            Text("Activity Map", style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
             _buildMonthlyHeatmap(context, history),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 48),
             
             // Next Milestones
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Next Milestones", style: theme.textTheme.titleLarge),
-            ),
+            Text("Next Milestones", style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
             _buildMilestones(streak),
             
@@ -101,19 +98,18 @@ class StreakStatsPage extends StatelessWidget {
     final theme = Theme.of(context);
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: theme.dividerColor.withOpacity(0.05)),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
           ],
         ),
       ),
@@ -125,7 +121,7 @@ class StreakStatsPage extends StatelessWidget {
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final startPadding = firstDayOfMonth.weekday - 1; // 0 for Monday
+    final startPadding = firstDayOfMonth.weekday - 1;
 
     final recordedDays = history
         .map((e) => DateFormat('yyyy-MM-dd').format(e.createdAt))

@@ -42,6 +42,7 @@ class LoginController extends ChangeNotifier {
         _errorMessage = 'Invalid username or password.';
       }
     } catch (e) {
+      debugPrint('Login error: $e');
       _errorMessage = 'An error occurred. Please try again later.';
     }
 

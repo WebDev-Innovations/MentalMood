@@ -50,4 +50,14 @@ class DriftEmotionRepository implements EmotionRepository {
   Future<int> deleteTag(int id) {
     return _db.deleteTag(id);
   }
+
+  @override
+  Future<int> unlockBadge(BadgeCompanion badge) {
+    return _db.unlockBadge(badge);
+  }
+
+  @override
+  Future<List<BadgeData>> getBadgesForUser(int userId) {
+    return _db.getBadgesForUser(userId);
+  }
 }

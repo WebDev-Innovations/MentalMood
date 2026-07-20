@@ -4,6 +4,7 @@ import 'package:application/Logic/mood_controller.dart';
 import 'package:application/Logic/register_controller.dart';
 import 'package:application/Pages/Access/login.dart';
 import 'package:application/Pages/Mood/add_mood_page.dart';
+import 'package:application/Pages/Mood/achievements_page.dart';
 import 'package:application/Pages/Mood/mood_history_page.dart';
 import 'package:application/Pages/Mood/streak_stats_page.dart';
 import 'package:application/Pages/homePage.dart';
@@ -67,6 +68,7 @@ void main() async {
           '/settings': (context) => const SettingsPage(),
           '/history': (context) => const MoodHistoryPage(),
           '/streak': (context) => const StreakStatsPage(),
+          '/achievements': (context) => const AchievementsPage(),
         },
       ),
     ),

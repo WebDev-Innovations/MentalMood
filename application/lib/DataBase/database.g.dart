@@ -1095,17 +1095,473 @@ class MoodTagCompanion extends UpdateCompanion<MoodTagData> {
   }
 }
 
+class $BadgeTable extends Badge with TableInfo<$BadgeTable, BadgeData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BadgeTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unlockedAtMeta = const VerificationMeta(
+    'unlockedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> unlockedAt = GeneratedColumn<DateTime>(
+    'unlocked_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES user (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    code,
+    title,
+    description,
+    icon,
+    unlockedAt,
+    userId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'badge';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BadgeData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_iconMeta);
+    }
+    if (data.containsKey('unlocked_at')) {
+      context.handle(
+        _unlockedAtMeta,
+        unlockedAt.isAcceptableOrUnknown(data['unlocked_at']!, _unlockedAtMeta),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BadgeData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BadgeData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      )!,
+      unlockedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}unlocked_at'],
+      ),
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+    );
+  }
+
+  @override
+  $BadgeTable createAlias(String alias) {
+    return $BadgeTable(attachedDatabase, alias);
+  }
+}
+
+class BadgeData extends DataClass implements Insertable<BadgeData> {
+  final int id;
+  final String code;
+  final String title;
+  final String description;
+  final String icon;
+  final DateTime? unlockedAt;
+  final int userId;
+  const BadgeData({
+    required this.id,
+    required this.code,
+    required this.title,
+    required this.description,
+    required this.icon,
+    this.unlockedAt,
+    required this.userId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['code'] = Variable<String>(code);
+    map['title'] = Variable<String>(title);
+    map['description'] = Variable<String>(description);
+    map['icon'] = Variable<String>(icon);
+    if (!nullToAbsent || unlockedAt != null) {
+      map['unlocked_at'] = Variable<DateTime>(unlockedAt);
+    }
+    map['user_id'] = Variable<int>(userId);
+    return map;
+  }
+
+  BadgeCompanion toCompanion(bool nullToAbsent) {
+    return BadgeCompanion(
+      id: Value(id),
+      code: Value(code),
+      title: Value(title),
+      description: Value(description),
+      icon: Value(icon),
+      unlockedAt: unlockedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unlockedAt),
+      userId: Value(userId),
+    );
+  }
+
+  factory BadgeData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BadgeData(
+      id: serializer.fromJson<int>(json['id']),
+      code: serializer.fromJson<String>(json['code']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String>(json['description']),
+      icon: serializer.fromJson<String>(json['icon']),
+      unlockedAt: serializer.fromJson<DateTime?>(json['unlockedAt']),
+      userId: serializer.fromJson<int>(json['userId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'code': serializer.toJson<String>(code),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String>(description),
+      'icon': serializer.toJson<String>(icon),
+      'unlockedAt': serializer.toJson<DateTime?>(unlockedAt),
+      'userId': serializer.toJson<int>(userId),
+    };
+  }
+
+  BadgeData copyWith({
+    int? id,
+    String? code,
+    String? title,
+    String? description,
+    String? icon,
+    Value<DateTime?> unlockedAt = const Value.absent(),
+    int? userId,
+  }) => BadgeData(
+    id: id ?? this.id,
+    code: code ?? this.code,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    icon: icon ?? this.icon,
+    unlockedAt: unlockedAt.present ? unlockedAt.value : this.unlockedAt,
+    userId: userId ?? this.userId,
+  );
+  BadgeData copyWithCompanion(BadgeCompanion data) {
+    return BadgeData(
+      id: data.id.present ? data.id.value : this.id,
+      code: data.code.present ? data.code.value : this.code,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      unlockedAt: data.unlockedAt.present
+          ? data.unlockedAt.value
+          : this.unlockedAt,
+      userId: data.userId.present ? data.userId.value : this.userId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BadgeData(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('icon: $icon, ')
+          ..write('unlockedAt: $unlockedAt, ')
+          ..write('userId: $userId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, code, title, description, icon, unlockedAt, userId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BadgeData &&
+          other.id == this.id &&
+          other.code == this.code &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.icon == this.icon &&
+          other.unlockedAt == this.unlockedAt &&
+          other.userId == this.userId);
+}
+
+class BadgeCompanion extends UpdateCompanion<BadgeData> {
+  final Value<int> id;
+  final Value<String> code;
+  final Value<String> title;
+  final Value<String> description;
+  final Value<String> icon;
+  final Value<DateTime?> unlockedAt;
+  final Value<int> userId;
+  const BadgeCompanion({
+    this.id = const Value.absent(),
+    this.code = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.unlockedAt = const Value.absent(),
+    this.userId = const Value.absent(),
+  });
+  BadgeCompanion.insert({
+    this.id = const Value.absent(),
+    required String code,
+    required String title,
+    required String description,
+    required String icon,
+    this.unlockedAt = const Value.absent(),
+    required int userId,
+  }) : code = Value(code),
+       title = Value(title),
+       description = Value(description),
+       icon = Value(icon),
+       userId = Value(userId);
+  static Insertable<BadgeData> custom({
+    Expression<int>? id,
+    Expression<String>? code,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? icon,
+    Expression<DateTime>? unlockedAt,
+    Expression<int>? userId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (code != null) 'code': code,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (icon != null) 'icon': icon,
+      if (unlockedAt != null) 'unlocked_at': unlockedAt,
+      if (userId != null) 'user_id': userId,
+    });
+  }
+
+  BadgeCompanion copyWith({
+    Value<int>? id,
+    Value<String>? code,
+    Value<String>? title,
+    Value<String>? description,
+    Value<String>? icon,
+    Value<DateTime?>? unlockedAt,
+    Value<int>? userId,
+  }) {
+    return BadgeCompanion(
+      id: id ?? this.id,
+      code: code ?? this.code,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      icon: icon ?? this.icon,
+      unlockedAt: unlockedAt ?? this.unlockedAt,
+      userId: userId ?? this.userId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (unlockedAt.present) {
+      map['unlocked_at'] = Variable<DateTime>(unlockedAt.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BadgeCompanion(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('icon: $icon, ')
+          ..write('unlockedAt: $unlockedAt, ')
+          ..write('userId: $userId')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDataBase extends GeneratedDatabase {
   _$AppDataBase(QueryExecutor e) : super(e);
   $AppDataBaseManager get managers => $AppDataBaseManager(this);
   late final $UserTable user = $UserTable(this);
   late final $EmotionTable emotion = $EmotionTable(this);
   late final $MoodTagTable moodTag = $MoodTagTable(this);
+  late final $BadgeTable badge = $BadgeTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [user, emotion, moodTag];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    user,
+    emotion,
+    moodTag,
+    badge,
+  ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
@@ -1121,6 +1577,13 @@ abstract class _$AppDataBase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('mood_tag', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'user',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('badge', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -1179,6 +1642,25 @@ final class $$UserTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_moodTagRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$BadgeTable, List<BadgeData>> _badgeRefsTable(
+    _$AppDataBase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.badge,
+    aliasName: 'user__id__badge__user_id',
+  );
+
+  $$BadgeTableProcessedTableManager get badgeRefs {
+    final manager = $$BadgeTableTableManager(
+      $_db,
+      $_db.badge,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_badgeRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1264,6 +1746,31 @@ class $$UserTableFilterComposer extends Composer<_$AppDataBase, $UserTable> {
           }) => $$MoodTagTableFilterComposer(
             $db: $db,
             $table: $db.moodTag,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> badgeRefs(
+    Expression<bool> Function($$BadgeTableFilterComposer f) f,
+  ) {
+    final $$BadgeTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.badge,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BadgeTableFilterComposer(
+            $db: $db,
+            $table: $db.badge,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1389,6 +1896,31 @@ class $$UserTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> badgeRefs<T extends Object>(
+    Expression<T> Function($$BadgeTableAnnotationComposer a) f,
+  ) {
+    final $$BadgeTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.badge,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BadgeTableAnnotationComposer(
+            $db: $db,
+            $table: $db.badge,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UserTableTableManager
@@ -1404,7 +1936,11 @@ class $$UserTableTableManager
           $$UserTableUpdateCompanionBuilder,
           (UserData, $$UserTableReferences),
           UserData,
-          PrefetchHooks Function({bool emotionRefs, bool moodTagRefs})
+          PrefetchHooks Function({
+            bool emotionRefs,
+            bool moodTagRefs,
+            bool badgeRefs,
+          })
         > {
   $$UserTableTableManager(_$AppDataBase db, $UserTable table)
     : super(
@@ -1455,52 +1991,73 @@ class $$UserTableTableManager
                     (e.readTable(table), $$UserTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({emotionRefs = false, moodTagRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (emotionRefs) db.emotion,
-                if (moodTagRefs) db.moodTag,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (emotionRefs)
-                    await $_getPrefetchedData<
-                      UserData,
-                      $UserTable,
-                      EmotionData
-                    >(
-                      currentTable: table,
-                      referencedTable: $$UserTableReferences._emotionRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$UserTableReferences(db, table, p0).emotionRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.userId == item.id),
-                      typedResults: items,
-                    ),
-                  if (moodTagRefs)
-                    await $_getPrefetchedData<
-                      UserData,
-                      $UserTable,
-                      MoodTagData
-                    >(
-                      currentTable: table,
-                      referencedTable: $$UserTableReferences._moodTagRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$UserTableReferences(db, table, p0).moodTagRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.userId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({emotionRefs = false, moodTagRefs = false, badgeRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (emotionRefs) db.emotion,
+                    if (moodTagRefs) db.moodTag,
+                    if (badgeRefs) db.badge,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (emotionRefs)
+                        await $_getPrefetchedData<
+                          UserData,
+                          $UserTable,
+                          EmotionData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UserTableReferences
+                              ._emotionRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UserTableReferences(db, table, p0).emotionRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (moodTagRefs)
+                        await $_getPrefetchedData<
+                          UserData,
+                          $UserTable,
+                          MoodTagData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UserTableReferences
+                              ._moodTagRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UserTableReferences(db, table, p0).moodTagRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (badgeRefs)
+                        await $_getPrefetchedData<
+                          UserData,
+                          $UserTable,
+                          BadgeData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UserTableReferences
+                              ._badgeRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UserTableReferences(db, table, p0).badgeRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -1517,7 +2074,11 @@ typedef $$UserTableProcessedTableManager =
       $$UserTableUpdateCompanionBuilder,
       (UserData, $$UserTableReferences),
       UserData,
-      PrefetchHooks Function({bool emotionRefs, bool moodTagRefs})
+      PrefetchHooks Function({
+        bool emotionRefs,
+        bool moodTagRefs,
+        bool badgeRefs,
+      })
     >;
 typedef $$EmotionTableCreateCompanionBuilder =
     EmotionCompanion Function({
@@ -2141,6 +2702,356 @@ typedef $$MoodTagTableProcessedTableManager =
       MoodTagData,
       PrefetchHooks Function({bool userId})
     >;
+typedef $$BadgeTableCreateCompanionBuilder =
+    BadgeCompanion Function({
+      Value<int> id,
+      required String code,
+      required String title,
+      required String description,
+      required String icon,
+      Value<DateTime?> unlockedAt,
+      required int userId,
+    });
+typedef $$BadgeTableUpdateCompanionBuilder =
+    BadgeCompanion Function({
+      Value<int> id,
+      Value<String> code,
+      Value<String> title,
+      Value<String> description,
+      Value<String> icon,
+      Value<DateTime?> unlockedAt,
+      Value<int> userId,
+    });
+
+final class $$BadgeTableReferences
+    extends BaseReferences<_$AppDataBase, $BadgeTable, BadgeData> {
+  $$BadgeTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserTable _userIdTable(_$AppDataBase db) =>
+      db.user.createAlias('badge__user_id__user__id');
+
+  $$UserTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<int>('user_id')!;
+
+    final manager = $$UserTableTableManager(
+      $_db,
+      $_db.user,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$BadgeTableFilterComposer extends Composer<_$AppDataBase, $BadgeTable> {
+  $$BadgeTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get unlockedAt => $composableBuilder(
+    column: $table.unlockedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UserTableFilterComposer get userId {
+    final $$UserTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.user,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UserTableFilterComposer(
+            $db: $db,
+            $table: $db.user,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BadgeTableOrderingComposer
+    extends Composer<_$AppDataBase, $BadgeTable> {
+  $$BadgeTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get unlockedAt => $composableBuilder(
+    column: $table.unlockedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UserTableOrderingComposer get userId {
+    final $$UserTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.user,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UserTableOrderingComposer(
+            $db: $db,
+            $table: $db.user,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BadgeTableAnnotationComposer
+    extends Composer<_$AppDataBase, $BadgeTable> {
+  $$BadgeTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get unlockedAt => $composableBuilder(
+    column: $table.unlockedAt,
+    builder: (column) => column,
+  );
+
+  $$UserTableAnnotationComposer get userId {
+    final $$UserTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.user,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UserTableAnnotationComposer(
+            $db: $db,
+            $table: $db.user,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BadgeTableTableManager
+    extends
+        RootTableManager<
+          _$AppDataBase,
+          $BadgeTable,
+          BadgeData,
+          $$BadgeTableFilterComposer,
+          $$BadgeTableOrderingComposer,
+          $$BadgeTableAnnotationComposer,
+          $$BadgeTableCreateCompanionBuilder,
+          $$BadgeTableUpdateCompanionBuilder,
+          (BadgeData, $$BadgeTableReferences),
+          BadgeData,
+          PrefetchHooks Function({bool userId})
+        > {
+  $$BadgeTableTableManager(_$AppDataBase db, $BadgeTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BadgeTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BadgeTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BadgeTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> code = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<String> icon = const Value.absent(),
+                Value<DateTime?> unlockedAt = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+              }) => BadgeCompanion(
+                id: id,
+                code: code,
+                title: title,
+                description: description,
+                icon: icon,
+                unlockedAt: unlockedAt,
+                userId: userId,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String code,
+                required String title,
+                required String description,
+                required String icon,
+                Value<DateTime?> unlockedAt = const Value.absent(),
+                required int userId,
+              }) => BadgeCompanion.insert(
+                id: id,
+                code: code,
+                title: title,
+                description: description,
+                icon: icon,
+                unlockedAt: unlockedAt,
+                userId: userId,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$BadgeTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable: $$BadgeTableReferences
+                                    ._userIdTable(db),
+                                referencedColumn: $$BadgeTableReferences
+                                    ._userIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$BadgeTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDataBase,
+      $BadgeTable,
+      BadgeData,
+      $$BadgeTableFilterComposer,
+      $$BadgeTableOrderingComposer,
+      $$BadgeTableAnnotationComposer,
+      $$BadgeTableCreateCompanionBuilder,
+      $$BadgeTableUpdateCompanionBuilder,
+      (BadgeData, $$BadgeTableReferences),
+      BadgeData,
+      PrefetchHooks Function({bool userId})
+    >;
 
 class $AppDataBaseManager {
   final _$AppDataBase _db;
@@ -2150,4 +3061,6 @@ class $AppDataBaseManager {
       $$EmotionTableTableManager(_db, _db.emotion);
   $$MoodTagTableTableManager get moodTag =>
       $$MoodTagTableTableManager(_db, _db.moodTag);
+  $$BadgeTableTableManager get badge =>
+      $$BadgeTableTableManager(_db, _db.badge);
 }

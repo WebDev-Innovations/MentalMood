@@ -32,13 +32,23 @@ class MoodTag extends Table {
   IntColumn get userId => integer().nullable().references(User, #id, onDelete: KeyAction.cascade)(); // null means global/default
 }
 
-@DriftDatabase(tables: [User, Emotion, MoodTag])
+class Badge extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get code => text().unique()(); // e.g. 'streak_7', 'total_50'
+  TextColumn get title => text()();
+  TextColumn get description => text()();
+  TextColumn get icon => text()(); // Emoji or icon name
+  DateTimeColumn get unlockedAt => dateTime().nullable()();
+  IntColumn get userId => integer().references(User, #id, onDelete: KeyAction.cascade)();
+}
+
+@DriftDatabase(tables: [User, Emotion, MoodTag, Badge])
 class AppDataBase extends _$AppDataBase {
   AppDataBase() : super(_openConnection());
   AppDataBase.forTesting(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 4; // Increment schema version for MoodTag table
+  int get schemaVersion => 5;
 
   // User operations
   Future<int> createUser(UserCompanion entity) => into(user).insert(entity);
@@ -50,9 +60,7 @@ class AppDataBase extends _$AppDataBase {
 
   // Emotion operations
   Future<int> addEmotion(EmotionCompanion entity) => into(emotion).insert(entity);
-  
   Future<bool> updateEmotion(EmotionCompanion entity) => update(emotion).replace(entity);
-  
   Future<List<EmotionData>> getEmotionsForUser(int userId) =>
       (select(emotion)..where((e) => e.userId.equals(userId))..orderBy([(e) => OrderingTerm.desc(e.createdAt)])).get();
 
@@ -70,6 +78,11 @@ class AppDataBase extends _$AppDataBase {
       (select(moodTag)..where((t) => t.userId.isNull() | t.userId.equals(userId))).get();
   Future<int> deleteTag(int id) => (delete(moodTag)..where((t) => t.id.equals(id))).go();
 
+  // Badge operations
+  Future<int> unlockBadge(BadgeCompanion entity) => into(badge).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<List<BadgeData>> getBadgesForUser(int userId) =>
+      (select(badge)..where((b) => b.userId.equals(userId))).get();
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
@@ -77,16 +90,13 @@ class AppDataBase extends _$AppDataBase {
         await m.createAll();
       },
       onUpgrade: (m, from, to) async {
-        if (from < 2) {
-          await m.createTable(emotion);
-        }
+        if (from < 2) await m.createTable(emotion);
         if (from < 3) {
           await m.addColumn(emotion, emotion.note);
           await m.addColumn(emotion, emotion.tags);
         }
-        if (from < 4) {
-          await m.createTable(moodTag);
-        }
+        if (from < 4) await m.createTable(moodTag);
+        if (from < 5) await m.createTable(badge);
       },
       beforeOpen: (details) async {
         // Seed tags if empty
@@ -110,7 +120,7 @@ class AppDataBase extends _$AppDataBase {
           }
         }
 
-        // Seed the database with the default user if it's empty
+        // Seed default user
         final users = await select(user).get();
         if (users.isEmpty) {
           await into(user).insert(UserCompanion.insert(

@@ -24,6 +24,9 @@ class MoodController extends ChangeNotifier {
   List<MoodTagData> _availableTags = [];
   List<MoodTagData> get availableTags => _availableTags;
 
+  List<BadgeData> _unlockedBadges = [];
+  List<BadgeData> get unlockedBadges => _unlockedBadges;
+
   MoodRange _selectedRange = MoodRange.last7d;
   MoodRange get selectedRange => _selectedRange;
 
@@ -53,6 +56,7 @@ class MoodController extends ChangeNotifier {
       ));
       
       await fetchMoodHistory(userId);
+      await _checkAndUnlockBadges(userId);
       
       _isLoading = false;
       notifyListeners();
@@ -73,12 +77,110 @@ class MoodController extends ChangeNotifier {
     try {
       _moodHistory = await emotionRepository.getEmotionsForUser(userId);
       await fetchAvailableTags(userId);
+      await fetchUnlockedBadges(userId);
+      // Run a retroactive check for badges
+      await _checkAndUnlockBadges(userId);
+      
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _errorMessage = "Could not load history.";
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> fetchUnlockedBadges(int userId) async {
+    try {
+      _unlockedBadges = await emotionRepository.getBadgesForUser(userId);
+    } catch (e) {
+      debugPrint("Error fetching badges: $e");
+    }
+  }
+
+  Future<void> _checkAndUnlockBadges(int userId) async {
+    if (_moodHistory.isEmpty) return;
+
+    final streak = getStreak();
+    final totalEntries = _moodHistory.length;
+    final totalDays = _moodHistory.map((e) => DateFormat('yyyy-MM-dd').format(e.createdAt)).toSet().length;
+
+    bool badgeAdded = false;
+
+    // Helper to unlock
+    Future<void> unlock(String code, String title, String desc, String icon) async {
+      if (!_unlockedBadges.any((b) => b.code == code)) {
+        await emotionRepository.unlockBadge(BadgeCompanion.insert(
+          code: code,
+          title: title,
+          description: desc,
+          icon: icon,
+          userId: userId,
+          unlockedAt: Value(DateTime.now()),
+        ));
+        badgeAdded = true;
+      }
+    }
+
+    // Streak Badges
+    if (streak >= 3) await unlock('streak_3', 'On a Roll', '3 day mood streak!', '🔥');
+    if (streak >= 7) await unlock('streak_7', 'Week Warrior', '7 day mood streak!', '⚡');
+    if (streak >= 30) await unlock('streak_30', 'Dedicated', '30 day mood streak!', '💎');
+
+    // Total Entry Badges
+    if (totalEntries >= 10) await unlock('total_10', 'Getting Started', 'Logged 10 moods!', '🌱');
+    if (totalEntries >= 50) await unlock('total_50', 'Mood Master', 'Logged 50 moods!', '🎓');
+    if (totalEntries >= 100) await unlock('total_100', 'Centurion', 'Logged 100 moods!', '🏆');
+
+    // Variety Badges
+    final noteCount = _moodHistory.where((e) => e.note != null && e.note!.isNotEmpty).length;
+    if (noteCount >= 5) await unlock('notes_5', 'Journalist', 'Added notes to 5 entries', '✍️');
+
+    // --- SPECIAL/UNIQUE BADGES ---
+    
+    // 1. Early Bird (Logs between 5 AM and 8 AM)
+    final hasEarlyBird = _moodHistory.any((e) => e.createdAt.hour >= 5 && e.createdAt.hour <= 8);
+    if (hasEarlyBird) await unlock('special_early', 'Early Bird', 'Logged mood early morning', '🌅');
+
+    // 2. Night Owl (Logs between 00 AM and 4 AM)
+    final hasNightOwl = _moodHistory.any((e) => e.createdAt.hour >= 0 && e.createdAt.hour <= 4);
+    if (hasNightOwl) await unlock('special_night', 'Night Owl', 'Logged mood late at night', '🦉');
+
+    // 3. Zen Master (Search for ANY 3 consecutive entries with same value)
+    if (_moodHistory.length >= 3) {
+      bool foundZen = false;
+      // Note: history is sorted newest to oldest
+      for (int i = 0; i < _moodHistory.length - 2; i++) {
+        if (_moodHistory[i].value == _moodHistory[i+1].value && 
+            _moodHistory[i].value == _moodHistory[i+2].value) {
+          foundZen = true;
+          break;
+        }
+      }
+      if (foundZen) await unlock('special_zen', 'Zen Master', 'Extreme stability (3x same)', '🧘');
+    }
+
+    // 4. Rollercoaster (Low and High mood in the same day)
+    final Map<String, List<int>> dayValues = {};
+    for (var e in _moodHistory) {
+      final day = DateFormat('yyyy-MM-dd').format(e.createdAt);
+      dayValues.putIfAbsent(day, () => []).add(e.value);
+    }
+    bool hasRollercoaster = false;
+    dayValues.forEach((day, values) {
+      if (values.any((v) => v <= 3) && values.any((v) => v >= 8)) hasRollercoaster = true;
+    });
+    if (hasRollercoaster) await unlock('special_roller', 'Rollercoaster', 'Highs and lows in one day', '🎢');
+
+    // 5. Social Butterfly (Uses Family or Friends tags 5 times)
+    final socialCount = _moodHistory.where((e) {
+      if (e.tags == null) return false;
+      return e.tags!.contains('Family') || e.tags!.contains('Friends');
+    }).length;
+    if (socialCount >= 5) await unlock('special_social', 'Butterfly', 'Connected with others 5 times', '🦋');
+
+    if (badgeAdded) {
+      await fetchUnlockedBadges(userId);
     }
   }
 

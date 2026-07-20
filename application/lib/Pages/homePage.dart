@@ -46,11 +46,16 @@ class _HomePageState extends State<HomePage> {
           onPressed: () => Navigator.of(context).pushNamed('/settings'),
         ),
         actions: [
+          // Achievements Icon
+          IconButton(
+            icon: const Icon(Icons.emoji_events_rounded, color: AppTheme.primarySage),
+            onPressed: () => Navigator.of(context).pushNamed('/achievements'),
+            tooltip: 'Achievements',
+          ),
           // Duolingo-style Streak Widget
           GestureDetector(
             onTap: () => Navigator.of(context).pushNamed('/streak'),
             child: Container(
-              margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: streak > 0 ? Colors.orange.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
@@ -76,6 +81,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.auto_awesome_rounded),
             tooltip: 'Seed Mock Data',
